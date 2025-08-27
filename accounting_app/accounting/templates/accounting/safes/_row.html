@@ -1,0 +1,38 @@
+{% load humanize %}
+
+<tr id="safe-row-{{ safe.pk }}" class="border-b hover:bg-gray-50">
+    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+        {{ safe.name }}
+    </th>
+    <td class="px-6 py-4">
+        {% if safe.is_partner_wallet %}
+            <span class="bg-purple-100 text-purple-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">محفظة شريك: {{ safe.partner.name }}</span>
+        {% else %}
+            <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">خزنة عامة</span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4 font-mono {% if safe.balance < 0 %}text-red-600{% else %}text-gray-900{% endif %}">
+        {{ safe.balance|intcomma }}
+    </td>
+    <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
+        <button
+            hx-get="{% url 'accounting:safes:edit' pk=safe.pk %}"
+            hx-target="#modal-content"
+            hx-trigger="click"
+            _="on htmx:afterOnLoad
+                remove .hidden from #modal-container
+                add .flex to #modal-container
+                remove .hidden from #modal-backdrop"
+            class="text-blue-600 hover:text-blue-800 font-medium">
+            تعديل
+        </button>
+        <button
+            hx-delete="{% url 'accounting:safes:delete' pk=safe.pk %}"
+            hx-target="#safe-row-{{ safe.pk }}"
+            hx-swap="outerHTML"
+            hx-confirm="هل أنت متأكد من رغبتك في حذف هذا العنصر؟ لا يمكن حذف خزنة تحتوي على معاملات."
+            class="text-red-600 hover:text-red-800 font-medium">
+            حذف
+        </button>
+    </td>
+</tr>

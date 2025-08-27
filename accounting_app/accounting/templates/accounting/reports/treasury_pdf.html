@@ -1,0 +1,56 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>تقرير حركة الخزينة</title>
+</head>
+<body>
+    <h1 style="text-align: center;">تقرير حركة الخزينة</h1>
+    <p style="text-align: center;">عن الفترة من {{ from_date|date:"Y-m-d" }} إلى {{ to_date|date:"Y-m-d" }}</p>
+
+    {% for data in report_data %}
+        <div style="margin-bottom: 2rem;">
+            <h2>الخزنة: {{ data.safe.name }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>البيان</th>
+                        <th>وارد</th>
+                        <th>منصرف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="font-weight: bold;">
+                        <td colspan="2">رصيد افتتاحي</td>
+                        <td colspan="2">{{ data.opening_balance|intcomma }}</td>
+                    </tr>
+                    {% for tx in data.transactions %}
+                        <tr>
+                            <td>{{ tx.date|date:"Y-m-d" }}</td>
+                            <td>{{ tx.description }}</td>
+                            {% if tx.get_direction_display %} <!-- PaymentVoucher -->
+                                <td>-</td>
+                                <td>{{ tx.amount|intcomma }}</td>
+                            {% else %} <!-- ReceiptVoucher -->
+                                <td>{{ tx.amount|intcomma }}</td>
+                                <td>-</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                    <tr style="font-weight: bold; background-color: #f2f2f2;">
+                        <td colspan="2">الإجمالي</td>
+                        <td>{{ data.total_receipts|intcomma }}</td>
+                        <td>{{ data.total_payments|intcomma }}</td>
+                    </tr>
+                    <tr style="font-weight: bold; background-color: #f2f2f2;">
+                        <td colspan="2">رصيد ختامي</td>
+                        <td colspan="2">{{ data.closing_balance|intcomma }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+</body>
+</html>

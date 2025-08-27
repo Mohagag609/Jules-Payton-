@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <!-- Filtering form -->
+    <form hx-get="{% url 'accounting:installments:list' %}" hx-target="body" hx-push-url="true" class="flex items-center space-x-4 rtl:space-x-reverse">
+        <select name="status" class="form-select block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            <option value="">كل الحالات</option>
+            <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>قيد الانتظار</option>
+            <option value="PAID" {% if request.GET.status == 'PAID' %}selected{% endif %}>مدفوع</option>
+            <option value="LATE" {% if request.GET.status == 'LATE' %}selected{% endif %}>متأخر</option>
+        </select>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">فلترة</button>
+    </form>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">العقد</th>
+                    <th scope="col" class="px-6 py-3">العميل</th>
+                    <th scope="col" class="px-6 py-3">القسط #</th>
+                    <th scope="col" class="px-6 py-3">تاريخ الاستحقاق</th>
+                    <th scope="col" class="px-6 py-3">المبلغ</th>
+                    <th scope="col" class="px-6 py-3">المدفوع</th>
+                    <th scope="col" class="px-6 py-3">الحالة</th>
+                    <th scope="col" class="px-6 py-3 text-center">أدوات</th>
+                </tr>
+            </thead>
+            <tbody id="installment-table-body">
+                {% for installment in installments %}
+                    {% include 'accounting/installments/_row.html' with installment=installment %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal container for payment -->
+<div id="modal-content"></div>
+{% endblock %}

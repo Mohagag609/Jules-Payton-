@@ -1,0 +1,72 @@
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from django.db.models import ProtectedError
+
+from accounting.models import Unit
+from accounting.forms import UnitForm
+
+@login_required
+def unit_list_view(request):
+    """
+    Renders the list of all units.
+    """
+    units = Unit.objects.select_related('partners_group').all()
+    context = {
+        'units': units,
+        'page_title': 'الوحدات'
+    }
+    return render(request, 'accounting/units/list.html', context)
+
+@login_required
+def unit_create_view(request):
+    """
+    Handles creation of a new unit.
+    """
+    if request.method == 'POST':
+        form = UnitForm(request.POST)
+        if form.is_valid():
+            unit = form.save()
+            return render(request, 'accounting/units/_row.html', {'unit': unit})
+    else:
+        form = UnitForm()
+
+    context = {'form': form}
+    return render(request, 'accounting/units/_form.html', context)
+
+@login_required
+def unit_edit_view(request, pk):
+    """
+    Handles editing an existing unit.
+    """
+    unit = get_object_or_404(Unit, pk=pk)
+    if request.method == 'POST':
+        form = UnitForm(request.POST, instance=unit)
+        if form.is_valid():
+            unit = form.save()
+            return render(request, 'accounting/units/_row.html', {'unit': unit})
+    else:
+        form = UnitForm(instance=unit)
+
+    context = {
+        'form': form,
+        'unit': unit
+    }
+    return render(request, 'accounting/units/_form.html', context)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def unit_delete_view(request, pk):
+    """
+    Handles deletion of a unit.
+    """
+    unit = get_object_or_404(Unit, pk=pk)
+    try:
+        unit.delete()
+    except ProtectedError:
+        # This will happen if the unit is linked to a contract.
+        pass
+
+    return HttpResponse()

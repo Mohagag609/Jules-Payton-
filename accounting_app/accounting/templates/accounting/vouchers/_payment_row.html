@@ -1,0 +1,13 @@
+{% load humanize %}
+
+<tr id="payment-row-{{ payment.pk }}" class="border-b hover:bg-gray-50">
+    <td class="px-6 py-4">PV-{{ payment.pk | stringformat:"06d" }}</td>
+    <td class="px-6 py-4">{{ payment.date|date:"Y-m-d" }}</td>
+    <td class="px-6 py-4">{{ payment.safe.name }}</td>
+    <td class="px-6 py-4">{{ payment.description|truncatechars:40 }}</td>
+    <td class="px-6 py-4">
+        {% if payment.supplier %}{{ payment.supplier.name }}{% endif %}
+        {% if payment.project %}{{ payment.project.name }}{% endif %}
+    </td>
+    <td class="px-6 py-4 font-mono text-red-600">{{ payment.amount|intcomma }}</td>
+</tr>

@@ -1,0 +1,13 @@
+{% load humanize %}
+
+<tr id="receipt-row-{{ receipt.pk }}" class="border-b hover:bg-gray-50">
+    <td class="px-6 py-4">RV-{{ receipt.pk | stringformat:"06d" }}</td>
+    <td class="px-6 py-4">{{ receipt.date|date:"Y-m-d" }}</td>
+    <td class="px-6 py-4">{{ receipt.safe.name }}</td>
+    <td class="px-6 py-4">{{ receipt.description|truncatechars:40 }}</td>
+    <td class="px-6 py-4">
+        {% if receipt.customer %}{{ receipt.customer.name }}{% endif %}
+        {% if receipt.partner %}{{ receipt.partner.name }}{% endif %}
+    </td>
+    <td class="px-6 py-4 font-mono text-green-600">{{ receipt.amount|intcomma }}</td>
+</tr>

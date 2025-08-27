@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <p class="mt-2 text-gray-600">اختر التقرير المطلوب وحدد المعايير ثم قم بالتصدير.</p>
+</div>
+
+<div class="space-y-8">
+    <!-- Treasury Report Card -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير حركة الخزينة</h2>
+        <form action="{% url 'accounting:reports:treasury' %}" method="get" target="_blank" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label for="from_date_tr" class="block text-sm font-medium text-gray-700">من تاريخ</label>
+                <input type="date" name="from_date" id="from_date_tr" value="{{ default_from }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            </div>
+            <div>
+                <label for="to_date_tr" class="block text-sm font-medium text-gray-700">إلى تاريخ</label>
+                <input type="date" name="to_date" id="to_date_tr" value="{{ default_to }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            </div>
+            <div>
+                <label for="safe_tr" class="block text-sm font-medium text-gray-700">الخزنة</label>
+                <select name="safe" id="safe_tr" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="">كل الخزائن</option>
+                    {% for safe in safes %}
+                        <option value="{{ safe.pk }}">{{ safe.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex space-x-2 rtl:space-x-reverse">
+                <button type="submit" name="format" value="html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">عرض HTML</button>
+                <button type="submit" name="format" value="pdf" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">PDF</button>
+                <button type="submit" name="format" value="csv" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">CSV</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- More report cards will be added here -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm opacity-50">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير الأقساط (قيد الإنشاء)</h2>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow-sm opacity-50">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير أرصدة الشركاء (قيد الإنشاء)</h2>
+    </div>
+</div>
+{% endblock %}

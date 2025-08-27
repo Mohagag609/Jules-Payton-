@@ -1,0 +1,32 @@
+{% load humanize %}
+
+<tr id="project-row-{{ project.pk }}" class="border-b hover:bg-gray-50">
+    <td class="px-6 py-4">{{ project.code }}</td>
+    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+        {{ project.name }}
+    </th>
+    <td class="px-6 py-4">{{ project.get_type_display }}</td>
+    <td class="px-6 py-4">{{ project.get_status_display }}</td>
+    <td class="px-6 py-4 font-mono">{{ project.budget|intcomma }}</td>
+    <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
+        <button
+            hx-get="{% url 'accounting:projects_store:project_edit' pk=project.pk %}"
+            hx-target="#modal-content"
+            hx-trigger="click"
+            _="on htmx:afterOnLoad
+                remove .hidden from #modal-container
+                add .flex to #modal-container
+                remove .hidden from #modal-backdrop"
+            class="text-blue-600 hover:text-blue-800 font-medium">
+            تعديل
+        </button>
+        <button
+            hx-delete="{% url 'accounting:projects_store:project_delete' pk=project.pk %}"
+            hx-target="#project-row-{{ project.pk }}"
+            hx-swap="outerHTML"
+            hx-confirm="هل أنت متأكد من رغبتك في حذف هذا المشروع؟"
+            class="text-red-600 hover:text-red-800 font-medium">
+            حذف
+        </button>
+    </td>
+</tr>

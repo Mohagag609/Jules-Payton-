@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <div>
+        <a href="{% url 'accounting:projects_store:move_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 mr-4">
+            عرض كل الحركات
+        </a>
+        <button
+            hx-get="{% url 'accounting:projects_store:item_create' %}"
+            hx-target="#modal-content"
+            hx-trigger="click"
+            _="on htmx:afterOnLoad
+                remove .hidden from #modal-container
+                add .flex to #modal-container
+                remove .hidden from #modal-backdrop"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+            إضافة صنف جديد
+        </button>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">الكود</th>
+                    <th scope="col" class="px-6 py-3">الاسم</th>
+                    <th scope="col" class="px-6 py-3">وحدة القياس</th>
+                    <th scope="col" class="px-6 py-3">سعر الوحدة</th>
+                    <th scope="col" class="px-6 py-3">الرصيد الحالي</th>
+                    <th scope="col" class="px-6 py-3 text-center">أدوات</th>
+                </tr>
+            </thead>
+            <tbody id="item-table-body">
+                {% for item in items %}
+                    {% include 'accounting/store/_item_row.html' with item=item %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal container will be populated by HTMX -->
+<div id="modal-content"></div>
+{% endblock %}

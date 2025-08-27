@@ -1,0 +1,11 @@
+<header class="bg-white shadow-sm">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div>
+            <!-- Can be used for breadcrumbs or page title -->
+        </div>
+        <div>
+            <span class="text-gray-700">مرحباً, {{ request.user.username }}</span>
+            <a href="{% url 'admin:logout' %}" class="text-red-500 hover:text-red-700 ml-4">تسجيل الخروج</a>
+        </div>
+    </div>
+</header>

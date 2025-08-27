@@ -1,0 +1,27 @@
+<tr id="supplier-row-{{ supplier.pk }}" class="border-b hover:bg-gray-50">
+    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+        {{ supplier.name }}
+    </th>
+    <td class="px-6 py-4">{{ supplier.phone }}</td>
+    <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
+        <button
+            hx-get="{% url 'accounting:suppliers:edit' pk=supplier.pk %}"
+            hx-target="#modal-content"
+            hx-trigger="click"
+            _="on htmx:afterOnLoad
+                remove .hidden from #modal-container
+                add .flex to #modal-container
+                remove .hidden from #modal-backdrop"
+            class="text-blue-600 hover:text-blue-800 font-medium">
+            تعديل
+        </button>
+        <button
+            hx-delete="{% url 'accounting:suppliers:delete' pk=supplier.pk %}"
+            hx-target="#supplier-row-{{ supplier.pk }}"
+            hx-swap="outerHTML"
+            hx-confirm="هل أنت متأكد من رغبتك في حذف هذا المورد؟"
+            class="text-red-600 hover:text-red-800 font-medium">
+            حذف
+        </button>
+    </td>
+</tr>

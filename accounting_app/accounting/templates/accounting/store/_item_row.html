@@ -1,0 +1,32 @@
+{% load humanize %}
+
+<tr id="item-row-{{ item.pk }}" class="border-b hover:bg-gray-50">
+    <td class="px-6 py-4">{{ item.code }}</td>
+    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+        {{ item.name }}
+    </th>
+    <td class="px-6 py-4">{{ item.uom }}</td>
+    <td class="px-6 py-4 font-mono">{{ item.unit_price|intcomma }}</td>
+    <td class="px-6 py-4 font-bold">{{ item.balance|intcomma }}</td>
+    <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
+        <button
+            hx-get="{% url 'accounting:projects_store:item_edit' pk=item.pk %}"
+            hx-target="#modal-content"
+            hx-trigger="click"
+            _="on htmx:afterOnLoad
+                remove .hidden from #modal-container
+                add .flex to #modal-container
+                remove .hidden from #modal-backdrop"
+            class="text-blue-600 hover:text-blue-800 font-medium">
+            تعديل
+        </button>
+        <button
+            hx-delete="{% url 'accounting:projects_store:item_delete' pk=item.pk %}"
+            hx-target="#item-row-{{ item.pk }}"
+            hx-swap="outerHTML"
+            hx-confirm="هل أنت متأكد من رغبتك في حذف هذا الصنف؟"
+            class="text-red-600 hover:text-red-800 font-medium">
+            حذف
+        </button>
+    </td>
+</tr>

@@ -1,0 +1,44 @@
+<div class="w-64 bg-white shadow-md rounded-l-2xl my-4 ml-4">
+    <div class="p-6">
+        <h1 class="text-2xl font-bold text-gray-800">النظام المحاسبي</h1>
+    </div>
+    <nav class="mt-4">
+        <a href="{% url 'accounting:dashboard' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">لوحة التحكم</span>
+        </a>
+        <a href="{% url 'accounting:contracts:list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">العقود</span>
+        </a>
+        <a href="{% url 'accounting:installments:list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">الأقساط</span>
+        </a>
+        <a href="{% url 'accounting:vouchers:receipt_list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">السندات</span>
+        </a>
+        <a href="{% url 'accounting:partners:list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">الشركاء</span>
+        </a>
+        <a href="{% url 'accounting:safes:list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">الخزائن والمحافظ</span>
+        </a>
+        <a href="{% url 'accounting:customers:list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">العملاء</span>
+        </a>
+        <a href="{% url 'accounting:suppliers:list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">الموردون</span>
+        </a>
+        <a href="{% url 'accounting:units:list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">الوحدات</span>
+        </a>
+        <a href="{% url 'accounting:projects_store:project_list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">المشاريع</span>
+        </a>
+        <a href="{% url 'accounting:projects_store:item_list' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">المخزن</span>
+        </a>
+        <a href="{% url 'accounting:reports:index' %}" class="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-200">
+            <span class="mx-3">التقارير</span>
+        </a>
+        <!-- More links will be added here -->
+    </nav>
+</div>

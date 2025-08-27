@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <button
+        hx-get="{% url 'accounting:vouchers:payment_create' %}"
+        hx-target="#modal-content"
+        hx-trigger="click"
+        _="on htmx:afterOnLoad
+            remove .hidden from #modal-container
+            add .flex to #modal-container
+            remove .hidden from #modal-backdrop"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+        إضافة سند صرف
+    </button>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">#</th>
+                    <th scope="col" class="px-6 py-3">التاريخ</th>
+                    <th scope="col" class="px-6 py-3">الخزنة</th>
+                    <th scope="col" class="px-6 py-3">البيان</th>
+                    <th scope="col" class="px-6 py-3">الطرف</th>
+                    <th scope="col" class="px-6 py-3">المبلغ</th>
+                </tr>
+            </thead>
+            <tbody id="payment-table-body">
+                {% for payment in payments %}
+                    {% include 'accounting/vouchers/_payment_row.html' with payment=payment %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal container -->
+<div id="modal-content"></div>
+{% endblock %}

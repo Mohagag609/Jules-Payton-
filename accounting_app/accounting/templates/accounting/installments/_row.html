@@ -1,0 +1,40 @@
+{% load humanize %}
+
+<tr id="installment-row-{{ installment.pk }}" class="border-b hover:bg-gray-50">
+    <td class="px-6 py-4 font-mono">
+        <a href="{% url 'accounting:contracts:detail' pk=installment.contract.pk %}" class="text-blue-600 hover:underline">
+            {{ installment.contract.code }}
+        </a>
+    </td>
+    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+        {{ installment.contract.customer.name }}
+    </th>
+    <td class="px-6 py-4">{{ installment.seq_no }}</td>
+    <td class="px-6 py-4">{{ installment.due_date|date:"Y-m-d" }}</td>
+    <td class="px-6 py-4 font-mono">{{ installment.amount|intcomma }}</td>
+    <td class="px-6 py-4 font-mono">{{ installment.paid_amount|intcomma }}</td>
+    <td class="px-6 py-4">
+        {% if installment.status == 'PAID' %}
+            <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">مدفوع</span>
+        {% elif installment.status == 'LATE' %}
+            <span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">متأخر</span>
+        {% else %}
+            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">قيد الانتظار</span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4 text-center">
+        {% if not installment.is_paid %}
+            <button
+                hx-get="{% url 'accounting:installments:pay' pk=installment.pk %}"
+                hx-target="#modal-content"
+                hx-trigger="click"
+                _="on htmx:afterOnLoad
+                    remove .hidden from #modal-container
+                    add .flex to #modal-container
+                    remove .hidden from #modal-backdrop"
+                class="text-green-600 hover:text-green-800 font-medium">
+                سداد
+            </button>
+        {% endif %}
+    </td>
+</tr>

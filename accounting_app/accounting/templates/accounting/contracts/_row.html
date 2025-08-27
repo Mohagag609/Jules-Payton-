@@ -1,0 +1,16 @@
+{% load humanize %}
+
+<tr id="contract-row-{{ contract.pk }}" class="border-b hover:bg-gray-50">
+    <td class="px-6 py-4 font-mono">{{ contract.code }}</td>
+    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+        {{ contract.customer.name }}
+    </th>
+    <td class="px-6 py-4">{{ contract.unit.name }}</td>
+    <td class="px-6 py-4">{{ contract.start_date|date:"Y-m-d" }}</td>
+    <td class="px-6 py-4 font-mono">{{ contract.unit_value|intcomma }}</td>
+    <td class="px-6 py-4 text-center">
+        <a href="{% url 'accounting:contracts:detail' pk=contract.pk %}" class="text-blue-600 hover:text-blue-800 font-medium">
+            عرض التفاصيل
+        </a>
+    </td>
+</tr>

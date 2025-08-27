@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-2xl shadow-sm mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ page_title }}</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-gray-700">
+        <div><strong>العميل:</strong> {{ contract.customer.name }}</div>
+        <div><strong>الوحدة:</strong> {{ contract.unit.name }} ({{ contract.unit.code }})</div>
+        <div><strong>تاريخ البدء:</strong> {{ contract.start_date|date:"Y-m-d" }}</div>
+        <div class="font-mono"><strong>قيمة الوحدة:</strong> {{ contract.unit_value|intcomma }}</div>
+        <div class="font-mono"><strong>الدفعة المقدمة:</strong> {{ contract.down_payment|intcomma }}</div>
+        <div class="font-mono"><strong>المبلغ المتبقي:</strong> {{ contract.remaining_amount|intcomma }}</div>
+        <div><strong>عدد الأقساط:</strong> {{ contract.installments_count }}</div>
+        <div><strong>نوع الجدولة:</strong> {{ contract.get_schedule_type_display }}</div>
+        <div><strong>مجموعة الشركاء:</strong> {{ contract.partners_group.name|default:"--" }}</div>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">جدول الأقساط</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">#</th>
+                    <th scope="col" class="px-6 py-3">تاريخ الاستحقاق</th>
+                    <th scope="col" class="px-6 py-3">المبلغ المستحق</th>
+                    <th scope="col" class="px-6 py-3">المبلغ المدفوع</th>
+                    <th scope="col" class="px-6 py-3">الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inst in installments %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4">{{ inst.seq_no }}</td>
+                        <td class="px-6 py-4">{{ inst.due_date|date:"Y-m-d" }}</td>
+                        <td class="px-6 py-4 font-mono">{{ inst.amount|intcomma }}</td>
+                        <td class="px-6 py-4 font-mono">{{ inst.paid_amount|intcomma }}</td>
+                        <td class="px-6 py-4">
+                            {% if inst.status == 'PAID' %}
+                                <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">مدفوع</span>
+                            {% elif inst.status == 'LATE' %}
+                                <span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">متأخر</span>
+                            {% else %}
+                                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded-full">قيد الانتظار</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">لم يتم توليد جدول الأقساط بعد.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

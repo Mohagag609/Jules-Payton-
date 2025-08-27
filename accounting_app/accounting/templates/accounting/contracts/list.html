@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <a href="{% url 'accounting:contracts:create' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+        إنشاء عقد جديد
+    </a>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">رقم العقد</th>
+                    <th scope="col" class="px-6 py-3">العميل</th>
+                    <th scope="col" class="px-6 py-3">الوحدة</th>
+                    <th scope="col" class="px-6 py-3">تاريخ البدء</th>
+                    <th scope="col" class="px-6 py-3">قيمة العقد</th>
+                    <th scope="col" class="px-6 py-3 text-center">أدوات</th>
+                </tr>
+            </thead>
+            <tbody id="contract-table-body">
+                {% for contract in contracts %}
+                    {% include 'accounting/contracts/_row.html' with contract=contract %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
