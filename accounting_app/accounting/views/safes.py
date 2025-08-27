@@ -34,8 +34,10 @@ def safe_create_view(request):
         form = SafeForm(request.POST)
         if form.is_valid():
             safe = form.save()
-            safe.balance = get_safe_balance(safe) # Calculate initial balance (should be 0)
-            return render(request, 'accounting/safes/_row.html', {'safe': safe})
+            safe.balance = get_safe_balance(safe)
+            response = render(request, 'accounting/safes/_row.html', {'safe': safe})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء الخزنة بنجاح!", "type": "success"}})
+            return response
     else:
         form = SafeForm()
 
@@ -53,7 +55,9 @@ def safe_edit_view(request, pk):
         if form.is_valid():
             safe = form.save()
             safe.balance = get_safe_balance(safe)
-            return render(request, 'accounting/safes/_row.html', {'safe': safe})
+            response = render(request, 'accounting/safes/_row.html', {'safe': safe})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث الخزنة بنجاح!", "type": "success"}})
+            return response
     else:
         form = SafeForm(instance=safe)
 

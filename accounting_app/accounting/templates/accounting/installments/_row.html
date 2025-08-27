@@ -27,11 +27,7 @@
             <button
                 hx-get="{% url 'accounting:installments:pay' pk=installment.pk %}"
                 hx-target="#modal-content"
-                hx-trigger="click"
-                _="on htmx:afterOnLoad
-                    remove .hidden from #modal-container
-                    add .flex to #modal-container
-                    remove .hidden from #modal-backdrop"
+                onclick="openModal()"
                 class="text-green-600 hover:text-green-800 font-medium">
                 سداد
             </button>

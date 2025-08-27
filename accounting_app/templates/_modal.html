@@ -1,9 +1,6 @@
-<!-- This is a global modal container -->
+<!-- This is a global modal container, controlled by functions in base.html -->
 <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
-<div id="modal-container"
-     class="fixed inset-0 z-50 flex items-center justify-center hidden"
-     _="on closeModal remove .flex then add .hidden to me
-        add .hidden to #modal-backdrop
-        set my innerHTML to ''">
-    <!-- The modal content will be swapped in here by HTMX -->
+<div id="modal-container" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <!-- The form content will be swapped in here by HTMX -->
+    <div id="modal-content"></div>
 </div>

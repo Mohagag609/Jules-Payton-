@@ -29,7 +29,9 @@ def unit_create_view(request):
         form = UnitForm(request.POST)
         if form.is_valid():
             unit = form.save()
-            return render(request, 'accounting/units/_row.html', {'unit': unit})
+            response = render(request, 'accounting/units/_row.html', {'unit': unit})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء الوحدة بنجاح!", "type": "success"}})
+            return response
     else:
         form = UnitForm()
 
@@ -46,7 +48,9 @@ def unit_edit_view(request, pk):
         form = UnitForm(request.POST, instance=unit)
         if form.is_valid():
             unit = form.save()
-            return render(request, 'accounting/units/_row.html', {'unit': unit})
+            response = render(request, 'accounting/units/_row.html', {'unit': unit})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث الوحدة بنجاح!", "type": "success"}})
+            return response
     else:
         form = UnitForm(instance=unit)
 

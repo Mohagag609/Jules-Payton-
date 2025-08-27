@@ -1,27 +1,23 @@
+{% load static %}
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}نظام المحاسبة{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
-        .htmx-indicator{
-            opacity:0;
-            transition: opacity 200ms ease-in;
-        }
-        .htmx-request .htmx-indicator{
-            opacity:1
-        }
-        .htmx-request.htmx-indicator{
-            opacity:1
-        }
+        .htmx-indicator{ opacity:0; transition: opacity 200ms ease-in; }
+        .htmx-request .htmx-indicator{ opacity:1 }
+        .htmx-request.htmx-indicator{ opacity:1 }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -51,38 +47,52 @@
     <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-2"></div>
 
     <script>
+        // --- Modal Control ---
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContainer = document.getElementById('modal-container');
+
+        function openModal() {
+            modalBackdrop.classList.remove('hidden');
+            modalContainer.classList.remove('hidden');
+            modalContainer.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modalContent = document.getElementById('modal-content');
+            if (modalContent) {
+                modalContent.innerHTML = ''; // Clear content on close
+            }
+            modalContainer.classList.add('hidden');
+            modalContainer.classList.remove('flex');
+            modalBackdrop.classList.add('hidden');
+        }
+
+        // --- HTMX Event Listeners for Modals & Toasts ---
         document.body.addEventListener('htmx:afterOnLoad', function(evt) {
             if (evt.detail.xhr.status >= 400) {
-                // Generic error handling for failed requests
-                const errorMsg = evt.detail.xhr.responseText || 'حدث خطأ غير متوقع.';
+                const errorMsg = evt.detail.xhr.responseText || 'An unexpected error occurred.';
                 showToast(errorMsg, 'error');
             }
         });
+
+        document.body.addEventListener('closeModal', closeModal);
 
         document.body.addEventListener('showToast', function(evt) {
             showToast(evt.detail.message, evt.detail.type || 'info');
         });
 
+        // --- Toast Notification Function ---
         function showToast(message, type = 'info') {
             const toastContainer = document.getElementById('toast-container');
             const toast = document.createElement('div');
 
-            let bgColor, textColor, borderColor;
-            if (type === 'error') {
-                bgColor = 'bg-red-100';
-                textColor = 'text-red-700';
-                borderColor = 'border-red-400';
-            } else if (type === 'success') {
-                bgColor = 'bg-green-100';
-                textColor = 'text-green-700';
-                borderColor = 'border-green-400';
-            } else {
-                bgColor = 'bg-blue-100';
-                textColor = 'text-blue-700';
-                borderColor = 'border-blue-400';
-            }
+            let colors = {
+                info: 'bg-blue-100 text-blue-700 border-blue-400',
+                success: 'bg-green-100 text-green-700 border-green-400',
+                error: 'bg-red-100 text-red-700 border-red-400',
+            };
 
-            toast.className = `p-4 mb-4 text-sm rounded-lg border ${borderColor} ${bgColor} ${textColor}`;
+            toast.className = `p-4 mb-4 text-sm rounded-lg border ${colors[type] || colors['info']}`;
             toast.setAttribute('role', 'alert');
             toast.innerHTML = `<span class="font-medium">${message}</span>`;
 

@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -22,8 +23,9 @@ def receipt_voucher_create_view(request):
         form = ReceiptVoucherForm(request.POST)
         if form.is_valid():
             receipt = form.save()
-            # This is a simple create, so we just return the new row
-            return render(request, 'accounting/vouchers/_receipt_row.html', {'receipt': receipt})
+            response = render(request, 'accounting/vouchers/_receipt_row.html', {'receipt': receipt})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء سند القبض بنجاح!", "type": "success"}})
+            return response
     else:
         form = ReceiptVoucherForm()
 
@@ -47,7 +49,9 @@ def payment_voucher_create_view(request):
         form = PaymentVoucherForm(request.POST)
         if form.is_valid():
             payment = form.save()
-            return render(request, 'accounting/vouchers/_payment_row.html', {'payment': payment})
+            response = render(request, 'accounting/vouchers/_payment_row.html', {'payment': payment})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء سند الصرف بنجاح!", "type": "success"}})
+            return response
     else:
         form = PaymentVoucherForm()
 

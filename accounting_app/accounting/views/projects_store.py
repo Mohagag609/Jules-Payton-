@@ -21,7 +21,9 @@ def project_create_view(request):
         form = ProjectForm(request.POST)
         if form.is_valid():
             project = form.save()
-            return render(request, 'accounting/projects/_row.html', {'project': project})
+            response = render(request, 'accounting/projects/_row.html', {'project': project})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء المشروع بنجاح!", "type": "success"}})
+            return response
     else:
         form = ProjectForm()
     return render(request, 'accounting/projects/_form.html', {'form': form})
@@ -33,7 +35,9 @@ def project_edit_view(request, pk):
         form = ProjectForm(request.POST, instance=project)
         if form.is_valid():
             project = form.save()
-            return render(request, 'accounting/projects/_row.html', {'project': project})
+            response = render(request, 'accounting/projects/_row.html', {'project': project})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث المشروع بنجاح!", "type": "success"}})
+            return response
     else:
         form = ProjectForm(instance=project)
     return render(request, 'accounting/projects/_form.html', {'form': form, 'project': project})
@@ -70,7 +74,9 @@ def item_create_view(request):
         if form.is_valid():
             item = form.save()
             item.balance = 0
-            return render(request, 'accounting/store/_item_row.html', {'item': item})
+            response = render(request, 'accounting/store/_item_row.html', {'item': item})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء الصنف بنجاح!", "type": "success"}})
+            return response
     else:
         form = ItemForm()
     return render(request, 'accounting/store/_item_form.html', {'form': form})
@@ -83,7 +89,9 @@ def item_edit_view(request, pk):
         if form.is_valid():
             item = form.save()
             item.balance = item.get_stock_balance()
-            return render(request, 'accounting/store/_item_row.html', {'item': item})
+            response = render(request, 'accounting/store/_item_row.html', {'item': item})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث الصنف بنجاح!", "type": "success"}})
+            return response
     else:
         form = ItemForm(instance=item)
     return render(request, 'accounting/store/_item_form.html', {'form': form, 'item': item})
@@ -117,10 +125,12 @@ def stock_move_create_view(request):
         form = StockMoveForm(request.POST)
         if form.is_valid():
             form.save()
-            # This is a bit different, we redirect to the list view
-            # as there isn't a single row to update easily.
+            # On success, we trigger a toast and then redirect the whole page
+            # because a stock move affects item balances elsewhere.
+            toast_event = {"showToast": {"message": "تم تسجيل حركة المخزن بنجاح!", "type": "success"}}
             response = HttpResponse()
-            response['HX-Redirect'] = request.META.get('HTTP_REFERER')
+            response['HX-Trigger-After-Swap'] = json.dumps(toast_event)
+            response['HX-Redirect'] = request.META.get('HTTP_REFERER', '/')
             return response
     else:
         form = StockMoveForm()

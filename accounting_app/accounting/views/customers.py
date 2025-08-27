@@ -30,7 +30,9 @@ def customer_create_view(request):
         form = CustomerForm(request.POST)
         if form.is_valid():
             customer = form.save()
-            return render(request, 'accounting/customers/_row.html', {'customer': customer})
+            response = render(request, 'accounting/customers/_row.html', {'customer': customer})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء العميل بنجاح!", "type": "success"}})
+            return response
     else:
         form = CustomerForm()
 
@@ -47,7 +49,9 @@ def customer_edit_view(request, pk):
         form = CustomerForm(request.POST, instance=customer)
         if form.is_valid():
             customer = form.save()
-            return render(request, 'accounting/customers/_row.html', {'customer': customer})
+            response = render(request, 'accounting/customers/_row.html', {'customer': customer})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث بيانات العميل بنجاح!", "type": "success"}})
+            return response
     else:
         form = CustomerForm(instance=customer)
 

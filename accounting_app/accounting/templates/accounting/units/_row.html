@@ -18,11 +18,7 @@
         <button
             hx-get="{% url 'accounting:units:edit' pk=unit.pk %}"
             hx-target="#modal-content"
-            hx-trigger="click"
-            _="on htmx:afterOnLoad
-                remove .hidden from #modal-container
-                add .flex to #modal-container
-                remove .hidden from #modal-backdrop"
+            onclick="openModal()"
             class="text-blue-600 hover:text-blue-800 font-medium {% if unit.contract %}disabled:opacity-50{% endif %}"
             {% if unit.contract %}disabled{% endif %}>
             تعديل

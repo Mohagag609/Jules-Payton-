@@ -11,11 +11,7 @@
         <button
             hx-get="{% url 'accounting:partners:edit' pk=partner.pk %}"
             hx-target="#modal-content"
-            hx-trigger="click"
-            _="on htmx:afterOnLoad
-                remove .hidden from #modal-container
-                add .flex to #modal-container
-                remove .hidden from #modal-backdrop"
+            onclick="openModal()"
             class="text-blue-600 hover:text-blue-800 font-medium">
             تعديل
         </button>

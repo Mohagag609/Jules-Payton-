@@ -31,8 +31,10 @@ def partner_create_view(request):
         form = PartnerForm(request.POST)
         if form.is_valid():
             partner = form.save()
-            # Return the new row to be prepended to the table
-            return render(request, 'accounting/partners/_row.html', {'partner': partner})
+            # Return the new row and trigger the closeModal event
+            response = render(request, 'accounting/partners/_row.html', {'partner': partner})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء الشريك بنجاح!", "type": "success"}})
+            return response
     else:
         form = PartnerForm()
 
@@ -51,8 +53,10 @@ def partner_edit_view(request, pk):
         form = PartnerForm(request.POST, instance=partner)
         if form.is_valid():
             partner = form.save()
-            # Return the updated row to be swapped in the table
-            return render(request, 'accounting/partners/_row.html', {'partner': partner})
+            # Return the updated row and trigger the closeModal event
+            response = render(request, 'accounting/partners/_row.html', {'partner': partner})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث بيانات الشريك بنجاح!", "type": "success"}})
+            return response
     else:
         form = PartnerForm(instance=partner)
 

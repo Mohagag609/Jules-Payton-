@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -45,8 +46,10 @@ def installment_pay_view(request, pk):
                 safe=form.cleaned_data['safe'],
                 payment_date=form.cleaned_data['date']
             )
-            # Return the updated row for HTMX
-            return render(request, 'accounting/installments/_row.html', {'installment': installment})
+            # Return the updated row for HTMX and trigger modal close
+            response = render(request, 'accounting/installments/_row.html', {'installment': installment})
+            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تسجيل الدفعة بنجاح!", "type": "success"}})
+            return response
     else:
         form = InstallmentPaymentForm(installment=installment)
 
