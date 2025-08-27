@@ -1,7 +1,7 @@
 from decimal import Decimal
 from datetime import date
-from django.db.models import Sum
 from django.db import transaction
+from django.db.models import Sum
 
 from accounting.models import PartnersGroup, PaymentVoucher, Settlement, Partner, Safe
 
@@ -13,14 +13,14 @@ def calculate_partner_settlement(
 ) -> Settlement:
     """
     Calculates the settlement for a group of partners over a given period.
-    This version uses explicit loops to be robust in test environments.
+    This version uses explicit loops to be robust, though it's less efficient.
     """
 
     members = partners_group.members.select_related('partner').all()
     if not members:
         raise ValueError("Cannot calculate settlement for a group with no members.")
 
-    # Explicitly get all payments for all partners in the group
+    # Get all payments related to the partners in the group for the period
     all_member_partners = [m.partner for m in members]
     all_payments_in_period = PaymentVoucher.objects.filter(
         date__range=(from_date, to_date),
@@ -49,7 +49,7 @@ def calculate_partner_settlement(
             'net_balance': float(net_balance)
         })
 
-    # --- Transfer calculation logic (remains the same) ---
+    # --- Transfer calculation logic ---
     creditors = sorted([p for p in partner_details if p['net_balance'] > 0], key=lambda x: x['net_balance'], reverse=True)
     debtors = sorted([p for p in partner_details if p['net_balance'] < 0], key=lambda x: x['net_balance'])
     transfers = []
@@ -66,7 +66,7 @@ def calculate_partner_settlement(
                     })
                     amount_to_pay -= transfer_amount
                     creditor['net_balance'] -= float(transfer_amount)
-                if amount_to_pay == 0:
+                if amount_to_pay.is_zero():
                     break
 
     with transaction.atomic():
