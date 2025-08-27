@@ -11,14 +11,9 @@ from accounting.services.treasury import get_safe_balance
 
 @login_required
 def safe_list_view(request):
-    """
-    Renders the list of all safes along with their current balances.
-    """
     safes = Safe.objects.select_related('partner').all()
-    # Add balance to each safe object
     for safe in safes:
         safe.balance = get_safe_balance(safe)
-
     context = {
         'safes': safes,
         'page_title': 'الخزائن والمحافظ'
@@ -27,9 +22,6 @@ def safe_list_view(request):
 
 @login_required
 def safe_create_view(request):
-    """
-    Handles creation of a new safe.
-    """
     if request.method == 'POST':
         form = SafeForm(request.POST)
         if form.is_valid():
@@ -40,15 +32,11 @@ def safe_create_view(request):
             return response
     else:
         form = SafeForm()
-
     context = {'form': form}
     return render(request, 'accounting/safes/_form.html', context)
 
 @login_required
 def safe_edit_view(request, pk):
-    """
-    Handles editing an existing safe.
-    """
     safe = get_object_or_404(Safe, pk=pk)
     if request.method == 'POST':
         form = SafeForm(request.POST, instance=safe)
@@ -60,7 +48,6 @@ def safe_edit_view(request, pk):
             return response
     else:
         form = SafeForm(instance=safe)
-
     context = {
         'form': form,
         'safe': safe
@@ -70,28 +57,15 @@ def safe_edit_view(request, pk):
 @login_required
 @require_http_methods(["DELETE"])
 def safe_delete_view(request, pk):
-    """
-    Handles deletion of a safe.
-    """
     safe = get_object_or_404(Safe, pk=pk)
     try:
         safe.delete()
         response = HttpResponse()
-        toast_event = {
-            "showToast": {
-                "message": f"تم حذف '{safe.name}' بنجاح.",
-                "type": "success"
-            }
-        }
+        toast_event = {"showToast": {"message": f"تم حذف '{safe.name}' بنجاح.", "type": "success"}}
         response['HX-Trigger'] = json.dumps(toast_event)
         return response
     except ProtectedError:
         response = HttpResponse()
-        toast_event = {
-            "showToast": {
-                "message": "لا يمكن حذف خزنة مرتبطة بسندات. قم بنقل الرصيد والمعاملات أولاً.",
-                "type": "error"
-            }
-        }
+        toast_event = {"showToast": {"message": "لا يمكن حذف خزنة مرتبطة بسندات. قم بنقل الرصيد والمعاملات أولاً.", "type": "error"}}
         response['HX-Trigger'] = json.dumps(toast_event)
         return response

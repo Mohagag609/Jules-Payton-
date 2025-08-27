@@ -3,7 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from django.db.models import ProtectedError
+from django.db.models import ProtectedError, Sum
+from decimal import Decimal
 
 from accounting.models import Project, Item, StockMove
 from accounting.forms import ProjectForm, ItemForm, StockMoveForm
@@ -129,6 +130,7 @@ def stock_move_create_view(request):
             # because a stock move affects item balances elsewhere.
             toast_event = {"showToast": {"message": "تم تسجيل حركة المخزن بنجاح!", "type": "success"}}
             response = HttpResponse()
+            # Use HX-Trigger-After-Swap to ensure the toast shows after the redirect
             response['HX-Trigger-After-Swap'] = json.dumps(toast_event)
             response['HX-Redirect'] = request.META.get('HTTP_REFERER', '/')
             return response

@@ -10,10 +10,7 @@ from accounting.forms import UnitForm
 
 @login_required
 def unit_list_view(request):
-    """
-    Renders the list of all units.
-    """
-    units = Unit.objects.select_related('partners_group').all()
+    units = Unit.objects.select_related('partners_group', 'contract').all()
     context = {
         'units': units,
         'page_title': 'الوحدات'
@@ -22,9 +19,6 @@ def unit_list_view(request):
 
 @login_required
 def unit_create_view(request):
-    """
-    Handles creation of a new unit.
-    """
     if request.method == 'POST':
         form = UnitForm(request.POST)
         if form.is_valid():
@@ -34,15 +28,11 @@ def unit_create_view(request):
             return response
     else:
         form = UnitForm()
-
     context = {'form': form}
     return render(request, 'accounting/units/_form.html', context)
 
 @login_required
 def unit_edit_view(request, pk):
-    """
-    Handles editing an existing unit.
-    """
     unit = get_object_or_404(Unit, pk=pk)
     if request.method == 'POST':
         form = UnitForm(request.POST, instance=unit)
@@ -53,7 +43,6 @@ def unit_edit_view(request, pk):
             return response
     else:
         form = UnitForm(instance=unit)
-
     context = {
         'form': form,
         'unit': unit
@@ -64,28 +53,15 @@ def unit_edit_view(request, pk):
 @login_required
 @require_http_methods(["DELETE"])
 def unit_delete_view(request, pk):
-    """
-    Handles deletion of a unit.
-    """
     unit = get_object_or_404(Unit, pk=pk)
     try:
         unit.delete()
         response = HttpResponse()
-        toast_event = {
-            "showToast": {
-                "message": f"تم حذف الوحدة '{unit.name}' بنجاح.",
-                "type": "success"
-            }
-        }
+        toast_event = {"showToast": {"message": f"تم حذف الوحدة '{unit.name}' بنجاح.", "type": "success"}}
         response['HX-Trigger'] = json.dumps(toast_event)
         return response
     except ProtectedError:
         response = HttpResponse()
-        toast_event = {
-            "showToast": {
-                "message": "لا يمكن حذف هذه الوحدة لأنها مرتبطة بعقد.",
-                "type": "error"
-            }
-        }
+        toast_event = {"showToast": {"message": "لا يمكن حذف هذه الوحدة لأنها مرتبطة بعقد.", "type": "error"}}
         response['HX-Trigger'] = json.dumps(toast_event)
         return response

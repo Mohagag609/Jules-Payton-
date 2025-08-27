@@ -10,9 +10,6 @@ from accounting.forms import SupplierForm
 
 @login_required
 def supplier_list_view(request):
-    """
-    Renders the list of all suppliers.
-    """
     suppliers = Supplier.objects.all()
     context = {
         'suppliers': suppliers,
@@ -22,9 +19,6 @@ def supplier_list_view(request):
 
 @login_required
 def supplier_create_view(request):
-    """
-    Handles creation of a new supplier.
-    """
     if request.method == 'POST':
         form = SupplierForm(request.POST)
         if form.is_valid():
@@ -34,15 +28,11 @@ def supplier_create_view(request):
             return response
     else:
         form = SupplierForm()
-
     context = {'form': form}
     return render(request, 'accounting/suppliers/_form.html', context)
 
 @login_required
 def supplier_edit_view(request, pk):
-    """
-    Handles editing an existing supplier.
-    """
     supplier = get_object_or_404(Supplier, pk=pk)
     if request.method == 'POST':
         form = SupplierForm(request.POST, instance=supplier)
@@ -53,7 +43,6 @@ def supplier_edit_view(request, pk):
             return response
     else:
         form = SupplierForm(instance=supplier)
-
     context = {
         'form': form,
         'supplier': supplier
@@ -64,14 +53,15 @@ def supplier_edit_view(request, pk):
 @login_required
 @require_http_methods(["DELETE"])
 def supplier_delete_view(request, pk):
-    """
-    Handles deletion of a supplier.
-    """
     supplier = get_object_or_404(Supplier, pk=pk)
     try:
         supplier.delete()
+        response = HttpResponse()
+        toast_event = {"showToast": {"message": f"تم حذف المورد '{supplier.name}' بنجاح.", "type": "success"}}
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
     except ProtectedError:
-        # This will happen if the supplier is linked to items or vouchers.
-        pass
-
-    return HttpResponse()
+        response = HttpResponse()
+        toast_event = {"showToast": {"message": "لا يمكن حذف هذا المورد لأنه مرتبط بسندات أو أصناف.", "type": "error"}}
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response

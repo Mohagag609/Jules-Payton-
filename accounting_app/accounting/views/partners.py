@@ -24,14 +24,11 @@ def partner_list_view(request):
 def partner_create_view(request):
     """
     Handles creation of a new partner.
-    - GET: Returns a modal form.
-    - POST: Creates the partner and returns the new table row.
     """
     if request.method == 'POST':
         form = PartnerForm(request.POST)
         if form.is_valid():
             partner = form.save()
-            # Return the new row and trigger the closeModal event
             response = render(request, 'accounting/partners/_row.html', {'partner': partner})
             response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء الشريك بنجاح!", "type": "success"}})
             return response
@@ -45,15 +42,12 @@ def partner_create_view(request):
 def partner_edit_view(request, pk):
     """
     Handles editing an existing partner.
-    - GET: Returns a form prepopulated with partner data.
-    - POST: Updates the partner and returns the updated table row.
     """
     partner = get_object_or_404(Partner, pk=pk)
     if request.method == 'POST':
         form = PartnerForm(request.POST, instance=partner)
         if form.is_valid():
             partner = form.save()
-            # Return the updated row and trigger the closeModal event
             response = render(request, 'accounting/partners/_row.html', {'partner': partner})
             response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث بيانات الشريك بنجاح!", "type": "success"}})
             return response
