@@ -4,7 +4,6 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
-from weasyprint import HTML, CSS
 
 from accounting.models import Safe, Customer, Partner, Project, Supplier
 from accounting.services.reports import (
@@ -69,6 +68,7 @@ def treasury_report_view(request):
     }
 
     if output_format == 'pdf':
+        from weasyprint import HTML, CSS
         # Render HTML template to a string
         html_string = render_to_string('accounting/reports/treasury_pdf.html', context)
         # WeasyPrint needs a base URL to resolve relative paths for CSS, etc.
@@ -137,6 +137,7 @@ def installments_report_view(request):
     }
 
     if output_format == 'pdf':
+        from weasyprint import HTML, CSS
         html_string = render_to_string('accounting/reports/installments_pdf.html', context)
         base_url = request.build_absolute_uri('/')
         pdf_css = CSS(string='''
