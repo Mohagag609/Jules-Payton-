@@ -24,6 +24,8 @@ def partner_list_view(request):
 def partner_create_view(request):
     """
     Handles creation of a new partner.
+    GET: Returns the form to be loaded into the modal.
+    POST: Processes the form and returns the new table row, closing the modal.
     """
     if request.method == 'POST':
         form = PartnerForm(request.POST)
