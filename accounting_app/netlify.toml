@@ -1,3 +1,7 @@
 [build]
-  command = "python manage.py collectstatic --noinput"
-  publish = "staticfiles/"
+  command = "pip install --upgrade pip && pip install -r requirements.txt && python manage.py collectstatic --noinput"
+  publish = "accounting_app/staticfiles"
+
+[build.environment]
+  PYTHON_VERSION = "3.9"
+  DJANGO_SETTINGS_MODULE = "accounting_app.settings"
