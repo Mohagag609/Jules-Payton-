@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <a href="{% url 'accounting:settlements:create' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+        إجراء تسوية جديدة
+    </a>
+</div>
+
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">#</th>
+                    <th scope="col" class="px-6 py-3">تاريخ الإنشاء</th>
+                    <th scope="col" class="px-6 py-3">الفترة</th>
+                    <th scope="col" class="px-6 py-3">المشروع</th>
+                    <th scope="col" class="px-6 py-3 text-center">أدوات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for settlement in settlements %}
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="px-6 py-4">{{ settlement.pk }}</td>
+                    <td class="px-6 py-4">{{ settlement.created_at|date:"Y-m-d" }}</td>
+                    <td class="px-6 py-4">{{ settlement.period_from|date:"Y-m-d" }} - {{ settlement.period_to|date:"Y-m-d" }}</td>
+                    <td class="px-6 py-4">{{ settlement.project.name|default:"تسوية عامة" }}</td>
+                    <td class="px-6 py-4 text-center">
+                        <a href="{% url 'accounting:settlements:detail' pk=settlement.pk %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                            عرض التفاصيل
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4">لا توجد تسويات سابقة.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

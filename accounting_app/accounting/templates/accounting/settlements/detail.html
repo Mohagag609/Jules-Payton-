@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <p class="mt-2 text-gray-600">
+        للفترة من {{ settlement.period_from|date:"Y-m-d" }} إلى {{ settlement.period_to|date:"Y-m-d" }}.
+        {% if settlement.project %}
+            للمشروع: {{ settlement.project.name }}
+        {% endif %}
+    </p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Balances Table -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">ملخص الأرصدة</h2>
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2">الشريك</th>
+                    <th class="px-4 py-2">ما دفعه</th>
+                    <th class="px-4 py-2">المفترض دفعه</th>
+                    <th class="px-4 py-2">الصافي (له/عليه)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for partner_data in settlement.pre_balances.partners %}
+                <tr class="border-b">
+                    <td class="px-4 py-2 font-bold">{{ partner_data.partner_name }}</td>
+                    <td class="px-4 py-2 font-mono">{{ partner_data.paid_amount|floatformat:2|intcomma }}</td>
+                    <td class="px-4 py-2 font-mono">{{ partner_data.should_have_paid|floatformat:2|intcomma }}</td>
+                    <td class="px-4 py-2 font-mono {% if partner_data.net_balance > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                        {{ partner_data.net_balance|floatformat:2|intcomma }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Transfers Table -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">التحويلات المطلوبة</h2>
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th class="px-4 py-2">من (المدين)</th>
+                    <th class="px-4 py-2">إلى (الدائن)</th>
+                    <th class="px-4 py-2">المبلغ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transfer in settlement.details.required_transfers %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ transfer.from }}</td>
+                    <td class="px-4 py-2">{{ transfer.to }}</td>
+                    <td class="px-4 py-2 font-mono">{{ transfer.amount|floatformat:2|intcomma }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center py-4">الحسابات مسواة، لا توجد تحويلات مطلوبة.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-8 text-center">
+    <a href="{% url 'accounting:settlements:list' %}" class="text-blue-600 hover:underline">العودة إلى سجل التسويات</a>
+</div>
+{% endblock %}

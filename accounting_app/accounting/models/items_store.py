@@ -29,6 +29,12 @@ class Item(models.Model):
         null=True, blank=True,
         verbose_name="المورد الافتراضي"
     )
+    min_stock_level = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name="حد المخزون الأدنى"
+    )
 
     class Meta:
         verbose_name = "صنف مخزن"

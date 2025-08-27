@@ -15,5 +15,6 @@ urlpatterns = [
     path('installments/', include('accounting.urls.installments', namespace='installments')),
     path('vouchers/', include('accounting.urls.vouchers', namespace='vouchers')),
     path('reports/', include('accounting.urls.reports', namespace='reports')),
+    path('settlements/', include('accounting.urls.settlements', namespace='settlements')),
     # Add other app-specific url modules here
 ]

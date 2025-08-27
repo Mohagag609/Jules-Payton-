@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, F
 from decimal import Decimal
 from datetime import date, timedelta
 
-from accounting.models import ReceiptVoucher, PaymentVoucher, Installment
+from accounting.models import ReceiptVoucher, PaymentVoucher, Installment, Project, Item
 
 @login_required
 def dashboard_view(request):
@@ -50,7 +50,21 @@ def dashboard_view(request):
         status=Installment.InstallmentStatus.LATE
     ).select_related('contract__customer')
 
-    # (Low stock and budget alerts will be implemented with their respective modules)
+    # Low stock items
+    low_stock_items = []
+    all_items = Item.objects.all()
+    for item in all_items:
+        if item.get_stock_balance() < item.min_stock_level:
+            low_stock_items.append(item)
+
+    # Projects over budget
+    projects_over_budget = []
+    ongoing_projects = Project.objects.filter(status=Project.ProjectStatus.ONGOING)
+    for project in ongoing_projects:
+        total_expenses = project.paymentvoucher_set.aggregate(total=Sum('amount'))['total'] or Decimal('0.0')
+        if total_expenses > project.budget:
+            project.total_expenses = total_expenses
+            projects_over_budget.append(project)
 
     context = {
         'total_receipts': total_receipts,
@@ -61,6 +75,8 @@ def dashboard_view(request):
         'last_payments': last_payments,
         'due_soon_installments': due_soon_installments,
         'late_installments': late_installments,
+        'low_stock_items': low_stock_items,
+        'projects_over_budget': projects_over_budget,
         'page_title': 'لوحة التحكم الرئيسية' # For the navbar or header
     }
 

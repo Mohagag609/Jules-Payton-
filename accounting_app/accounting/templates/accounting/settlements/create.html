@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="bg-white p-8 rounded-2xl shadow-sm max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">{{ page_title }}</h1>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label for="group" class="block text-sm font-medium text-gray-700">مجموعة الشركاء</label>
+                <select name="group" id="group" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    {% for group in groups %}
+                        <option value="{{ group.pk }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="project" class="block text-sm font-medium text-gray-700">المشروع (اختياري)</label>
+                <select name="project" id="project" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="">تسوية عامة</option>
+                    {% for p in projects %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="from_date" class="block text-sm font-medium text-gray-700">من تاريخ</label>
+                <input type="date" name="from_date" id="from_date" value="{{ default_from }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="to_date" class="block text-sm font-medium text-gray-700">إلى تاريخ</label>
+                <input type="date" name="to_date" id="to_date" value="{{ default_to }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+        </div>
+
+        <div class="flex justify-end pt-6">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300">
+                حساب التسوية
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

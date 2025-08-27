@@ -32,7 +32,7 @@
     </div>
 
     <!-- Alerts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <!-- Late Installments -->
         <div class="bg-white p-6 rounded-2xl shadow-sm">
             <h3 class="text-lg font-bold text-red-700 mb-4">تنبيهات: أقساط متأخرة</h3>
@@ -63,6 +63,38 @@
                 </ul>
             {% else %}
                 <p class="text-gray-500">لا توجد أقساط مستحقة خلال الأسبوع القادم.</p>
+            {% endif %}
+        </div>
+        <!-- Low Stock -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold text-purple-700 mb-4">تنبيهات: مخزون منخفض</h3>
+            {% if low_stock_items %}
+                <ul class="divide-y divide-gray-200">
+                    {% for item in low_stock_items|slice:":5" %}
+                        <li class="py-2 flex justify-between items-center">
+                            <span>{{ item.name }}</span>
+                            <span class="font-mono text-purple-500">الرصيد: {{ item.get_stock_balance|intcomma }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-500">لا توجد أصناف تحت الحد الأدنى.</p>
+            {% endif %}
+        </div>
+        <!-- Projects Over Budget -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm">
+            <h3 class="text-lg font-bold text-orange-700 mb-4">تنبيهات: تجاوز الميزانية</h3>
+            {% if projects_over_budget %}
+                <ul class="divide-y divide-gray-200">
+                    {% for p in projects_over_budget|slice:":5" %}
+                        <li class="py-2 flex justify-between items-center">
+                            <span>{{ p.name }}</span>
+                            <span class="font-mono text-orange-500">المنصرف: {{ p.total_expenses|intcomma }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-500">لا توجد مشاريع متجاوزة للميزانية.</p>
             {% endif %}
         </div>
     </div>

@@ -38,12 +38,80 @@
         </form>
     </div>
 
-    <!-- More report cards will be added here -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm opacity-50">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير الأقساط (قيد الإنشاء)</h2>
+    <!-- Installments Report Card -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير الأقساط</h2>
+        <form action="{% url 'accounting:reports:installments' %}" method="get" target="_blank" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label for="customer_inst" class="block text-sm font-medium text-gray-700">العميل</label>
+                <select name="customer" id="customer_inst" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="">كل العملاء</option>
+                    {% for customer in customers %}
+                        <option value="{{ customer.pk }}">{{ customer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="status_inst" class="block text-sm font-medium text-gray-700">الحالة</label>
+                <select name="status" id="status_inst" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                    <option value="">كل الحالات</option>
+                    <option value="PENDING">قيد الانتظار</option>
+                    <option value="PAID">مدفوع</option>
+                    <option value="LATE">متأخر</option>
+                </select>
+            </div>
+            <div></div> <!-- Spacer -->
+            <div class="flex space-x-2 rtl:space-x-reverse">
+                <button type="submit" name="format" value="html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">عرض HTML</button>
+                <button type="submit" name="format" value="pdf" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">PDF</button>
+                <button type="submit" name="format" value="csv" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">CSV</button>
+            </div>
+        </form>
     </div>
-    <div class="bg-white p-6 rounded-2xl shadow-sm opacity-50">
-        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير أرصدة الشركاء (قيد الإنشاء)</h2>
+
+    <!-- Partner Balances Report Card -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير أرصدة الشركاء</h2>
+        <form action="{% url 'accounting:reports:partner_balances' %}" method="get" target="_blank">
+            <p class="text-gray-600 mb-4">يعرض هذا التقرير الرصيد الحالي لجميع محافظ الشركاء.</p>
+            <div class="flex space-x-2 rtl:space-x-reverse">
+                <button type="submit" name="format" value="html" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">عرض HTML</button>
+                <button type="submit" name="format" value="csv" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">CSV</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Expenses Report Card -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">تقرير المصروفات</h2>
+        <form action="{% url 'accounting:reports:expenses' %}" method="get" target="_blank" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label for="from_date_exp" class="block text-sm font-medium text-gray-700">من تاريخ</label>
+                <input type="date" name="from_date" id="from_date_exp" value="{{ default_from }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="to_date_exp" class="block text-sm font-medium text-gray-700">إلى تاريخ</label>
+                <input type="date" name="to_date" id="to_date_exp" value="{{ default_to }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            <div>
+                <label for="project_exp" class="block text-sm font-medium text-gray-700">المشروع</label>
+                <select name="project" id="project_exp" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="">كل المشاريع</option>
+                    {% for p in projects %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="supplier_exp" class="block text-sm font-medium text-gray-700">المورد</label>
+                <select name="supplier" id="supplier_exp" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <option value="">كل الموردين</option>
+                    {% for s in suppliers %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-start-4 flex space-x-2 rtl:space-x-reverse">
+                <button type="submit" name="format" value="html" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">عرض HTML</button>
+                <button type="submit" name="format" value="csv" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">CSV</button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

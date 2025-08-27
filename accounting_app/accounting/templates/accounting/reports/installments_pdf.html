@@ -1,0 +1,52 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>تقرير الأقساط</title>
+</head>
+<body>
+    <h1 style="text-align: center;">تقرير الأقساط</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>العقد</th>
+                <th>العميل</th>
+                <th>#</th>
+                <th>الاستحقاق</th>
+                <th>المبلغ</th>
+                <th>المدفوع</th>
+                <th>المتبقي</th>
+                <th>الحالة</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inst in report_data.installments %}
+            <tr>
+                <td>{{ inst.contract.code }}</td>
+                <td>{{ inst.contract.customer.name }}</td>
+                <td>{{ inst.seq_no }}</td>
+                <td>{{ inst.due_date|date:"Y-m-d" }}</td>
+                <td>{{ inst.amount|intcomma }}</td>
+                <td>{{ inst.paid_amount|intcomma }}</td>
+                <td>{{ inst.remaining_amount|intcomma }}</td>
+                <td>{{ inst.get_status_display }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align: center;">لا توجد بيانات.</td></tr>
+            {% endfor %}
+        </tbody>
+        {% with totals=report_data.totals %}
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="4">الإجمالي</td>
+                <td>{{ totals.total_amount|intcomma }}</td>
+                <td>{{ totals.total_paid|intcomma }}</td>
+                <td>{{ totals.total_remaining|intcomma }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endwith %}
+    </table>
+</body>
+</html>

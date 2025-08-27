@@ -1,8 +1,11 @@
 from datetime import date, timedelta
 from decimal import Decimal
-from django.db.models import Sum
+from django.db.models import Sum, Q, F
 
-from accounting.models import Safe, ReceiptVoucher, PaymentVoucher
+from accounting.models import (
+    Safe, ReceiptVoucher, PaymentVoucher, Installment, Customer, Partner, Project, Supplier
+)
+from .treasury import get_safe_balance
 
 def get_treasury_report_data(from_date: date, to_date: date, safe: Safe = None):
     """
@@ -51,3 +54,70 @@ def get_treasury_report_data(from_date: date, to_date: date, safe: Safe = None):
         })
 
     return report_data
+
+def get_installments_report_data(customer: Customer = None, status: str = None):
+    """
+    Prepares data for the Installments Report.
+    - Filters by customer and/or status.
+    - Calculates totals for amount, paid_amount, and remaining.
+    """
+    installments = Installment.objects.select_related('contract__customer').all()
+
+    if customer:
+        installments = installments.filter(contract__customer=customer)
+    if status and status in ['PENDING', 'PAID', 'LATE']:
+        # Ensure statuses are up-to-date before filtering
+        for inst in installments.filter(status__in=['PENDING', 'LATE']):
+            inst.update_status()
+        installments = installments.filter(status=status)
+
+    # Annotate remaining amount
+    installments = installments.annotate(
+        remaining_amount=F('amount') - F('paid_amount')
+    )
+
+    totals = installments.aggregate(
+        total_amount=Sum('amount'),
+        total_paid=Sum('paid_amount'),
+        total_remaining=Sum('remaining_amount')
+    )
+
+    return {
+        'installments': installments,
+        'totals': totals
+    }
+
+def get_partner_balances_report_data():
+    """
+    Prepares data for the Partner Balances Report.
+    Fetches all partner wallets and their current balances.
+    """
+    partner_wallets = Safe.objects.filter(is_partner_wallet=True).select_related('partner')
+    report_data = []
+    for wallet in partner_wallets:
+        report_data.append({
+            'partner_name': wallet.partner.name,
+            'wallet_name': wallet.name,
+            'balance': get_safe_balance(wallet)
+        })
+    return report_data
+
+def get_expenses_report_data(from_date: date, to_date: date, project: Project = None, supplier: Supplier = None):
+    """
+    Prepares data for the Expenses Report.
+    Filters payment vouchers by date range and optionally by project or supplier.
+    """
+    expenses = PaymentVoucher.objects.filter(date__range=(from_date, to_date)) \
+                                     .select_related('project', 'supplier', 'safe')
+
+    if project:
+        expenses = expenses.filter(project=project)
+    if supplier:
+        expenses = expenses.filter(supplier=supplier)
+
+    total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or Decimal('0.0')
+
+    return {
+        'expenses': expenses.order_by('-date'),
+        'total_expenses': total_expenses
+    }
