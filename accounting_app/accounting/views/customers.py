@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+import json
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -66,11 +67,26 @@ def customer_delete_view(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     try:
         customer.delete()
+        # On successful deletion, HTMX will remove the element.
+        # We can also send a success toast.
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": f"تم حذف العميل '{customer.name}' بنجاح.",
+                "type": "success"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
     except ProtectedError:
-        # This will happen if the customer is linked to a contract.
-        # In a real app, you would send a message back to the user.
-        # For now, we just prevent deletion and do nothing, so the row remains.
-        # You could also use Django's messages framework and an HTMX header to show a toast.
-        pass
-
-    return HttpResponse()
+        # On failure, we return a 200 OK but trigger an error toast.
+        # The row will not be removed from the DOM.
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": "لا يمكن حذف هذا العميل لأنه مرتبط بعقود أو سندات.",
+                "type": "error"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response

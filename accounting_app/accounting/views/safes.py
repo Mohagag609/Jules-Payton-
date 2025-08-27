@@ -1,7 +1,9 @@
+import json
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from django.db.models import ProtectedError
 
 from accounting.models import Safe
 from accounting.forms import SafeForm
@@ -68,14 +70,24 @@ def safe_delete_view(request, pk):
     Handles deletion of a safe.
     """
     safe = get_object_or_404(Safe, pk=pk)
-    # Add a check here to prevent deleting a safe with a balance or transactions
-    balance = get_safe_balance(safe)
-    if balance != 0 or safe.receiptvoucher_set.exists() or safe.paymentvoucher_set.exists():
-         # In a real app, you'd return an error message to the user.
-         # For now, we just prevent deletion.
-         # Returning the row itself to prevent deletion on the frontend.
-        safe.balance = balance
-        return render(request, 'accounting/safes/_row.html', {'safe': safe})
-
-    safe.delete()
-    return HttpResponse()
+    try:
+        safe.delete()
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": f"تم حذف '{safe.name}' بنجاح.",
+                "type": "success"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
+    except ProtectedError:
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": "لا يمكن حذف خزنة مرتبطة بسندات. قم بنقل الرصيد والمعاملات أولاً.",
+                "type": "error"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response

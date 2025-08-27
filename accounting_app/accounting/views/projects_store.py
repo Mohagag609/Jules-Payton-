@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -43,9 +44,15 @@ def project_delete_view(request, pk):
     project = get_object_or_404(Project, pk=pk)
     try:
         project.delete()
+        response = HttpResponse()
+        toast_event = {"showToast": {"message": f"تم حذف المشروع '{project.name}' بنجاح.", "type": "success"}}
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
     except ProtectedError:
-        pass
-    return HttpResponse()
+        response = HttpResponse()
+        toast_event = {"showToast": {"message": "لا يمكن حذف هذا المشروع لأنه مرتبط بسندات صرف أو حركات مخزن.", "type": "error"}}
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
 
 # --- Item (Store) Views ---
 
@@ -87,9 +94,15 @@ def item_delete_view(request, pk):
     item = get_object_or_404(Item, pk=pk)
     try:
         item.delete()
+        response = HttpResponse()
+        toast_event = {"showToast": {"message": f"تم حذف الصنف '{item.name}' بنجاح.", "type": "success"}}
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
     except ProtectedError:
-        pass
-    return HttpResponse()
+        response = HttpResponse()
+        toast_event = {"showToast": {"message": "لا يمكن حذف هذا الصنف لأنه مرتبط بحركات مخزن.", "type": "error"}}
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
 
 # --- Stock Move Views ---
 

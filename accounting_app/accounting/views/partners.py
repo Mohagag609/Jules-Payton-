@@ -1,7 +1,9 @@
+import json
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from django.db.models import ProtectedError
 
 from accounting.models import Partner
 from accounting.forms import PartnerForm
@@ -65,10 +67,27 @@ def partner_edit_view(request, pk):
 @require_http_methods(["DELETE"])
 def partner_delete_view(request, pk):
     """
-    Handles deletion of a partner. Returns an empty response that HTMX
-    will use to remove the element from the DOM.
+    Handles deletion of a partner.
     """
     partner = get_object_or_404(Partner, pk=pk)
-    partner.delete()
-    # Return an empty response with 200 status code to signal success
-    return HttpResponse()
+    try:
+        partner.delete()
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": f"تم حذف الشريك '{partner.name}' بنجاح.",
+                "type": "success"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
+    except ProtectedError:
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": "لا يمكن حذف هذا الشريك لأنه مرتبط بمجموعات أو محافظ.",
+                "type": "error"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response

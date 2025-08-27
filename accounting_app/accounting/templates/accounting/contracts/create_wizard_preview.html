@@ -7,19 +7,6 @@
 <div class="bg-white p-8 rounded-2xl shadow-sm max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">{{ page_title }}</h1>
 
-    <div class="space-y-4 mb-8 text-gray-700">
-        <h2 class="text-xl font-bold text-gray-800">تفاصيل العقد</h2>
-        <p><strong>رقم العقد:</strong> {{ contract.code }}</p>
-        <p><strong>العميل:</strong> {{ contract.customer.name }}</p>
-        <p><strong>الوحدة:</strong> {{ contract.unit.name }}</p>
-        <p><strong>قيمة الوحدة:</strong> {{ contract.unit_value|intcomma }}</p>
-        <p><strong>الدفعة المقدمة:</strong> {{ contract.down_payment|intcomma }}</p>
-        <p><strong>عدد الأقساط:</strong> {{ contract.installments_count }}</p>
-        <p><strong>نوع الجدولة:</strong> {{ contract.get_schedule_type_display }}</p>
-        <p><strong>تاريخ بداية الأقساط:</strong> {{ contract.start_date|date:"Y-m-d" }}</p>
-        <p class="font-bold text-blue-600 mt-4">سيتم إنشاء جدول بـ {{ contract.installments_count }} قسط للمبلغ المتبقي وقدره {{ contract.remaining_amount|intcomma }}.</p>
-    </div>
-
     <form method="post">
         {% csrf_token %}
         <!-- Resubmit all the original form data -->
@@ -29,6 +16,34 @@
             {% endif %}
         {% endfor %}
         <input type="hidden" name="confirm_creation" value="true">
+
+        <div class="space-y-4 mb-8 text-gray-700 border-b pb-8">
+            <h2 class="text-xl font-bold text-gray-800">تفاصيل العقد</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <p><strong>رقم العقد:</strong> {{ form_data.code }}</p>
+                <p><strong>العميل:</strong> {{ contract.customer.name }}</p>
+                <p><strong>الوحدة:</strong> {{ contract.unit.name }}</p>
+                <p><strong>قيمة الوحدة:</strong> {{ form_data.unit_value|floatformat:2|intcomma }}</p>
+                <p><strong>الدفعة المقدمة:</strong> {{ form_data.down_payment|floatformat:2|intcomma }}</p>
+                <p><strong>عدد الأقساط:</strong> {{ form_data.installments_count }}</p>
+                <p><strong>نوع الجدولة:</strong> {{ contract.get_schedule_type_display }}</p>
+                <p><strong>تاريخ بداية الأقساط:</strong> {{ form_data.start_date }}</p>
+            </div>
+        </div>
+
+        {% if contract.down_payment > 0 %}
+        <div class="space-y-4 mb-8">
+            <h2 class="text-xl font-bold text-gray-800">إيداع الدفعة المقدمة</h2>
+            <div>
+                <label for="down_payment_safe" class="block text-sm font-medium text-gray-700">اختر الخزنة/المحفظة لإيداع الدفعة المقدمة</label>
+                <select name="down_payment_safe" id="down_payment_safe" required class="mt-1 block w-full md:w-1/2 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    {% for safe in safes %}
+                        <option value="{{ safe.pk }}">{{ safe.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        {% endif %}
 
         <div class="flex justify-between items-center pt-6 border-t">
             <a href="{% url 'accounting:contracts:create' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg">&larr; العودة للتعديل</a>

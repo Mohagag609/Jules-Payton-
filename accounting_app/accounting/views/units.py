@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -65,8 +66,22 @@ def unit_delete_view(request, pk):
     unit = get_object_or_404(Unit, pk=pk)
     try:
         unit.delete()
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": f"تم حذف الوحدة '{unit.name}' بنجاح.",
+                "type": "success"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response
     except ProtectedError:
-        # This will happen if the unit is linked to a contract.
-        pass
-
-    return HttpResponse()
+        response = HttpResponse()
+        toast_event = {
+            "showToast": {
+                "message": "لا يمكن حذف هذه الوحدة لأنها مرتبطة بعقد.",
+                "type": "error"
+            }
+        }
+        response['HX-Trigger'] = json.dumps(toast_event)
+        return response

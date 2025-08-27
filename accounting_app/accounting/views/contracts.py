@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.urls import reverse
 
-from accounting.models import Contract
+from accounting.models import Contract, Safe, ReceiptVoucher
 from accounting.forms import ContractForm
 from accounting.services.contracts import generate_installments_for_contract
 
@@ -50,10 +50,8 @@ def contract_create_view(request):
                 generate_installments_for_contract(contract_instance)
                 # Also create the down payment voucher if amount > 0
                 if contract_instance.down_payment > 0:
-                    # You might want to ask which safe to use for the down payment.
-                    # For now, let's assume the first safe. This is a simplification.
-                    from accounting.models import ReceiptVoucher, Safe
-                    safe = Safe.objects.first()
+                    safe_id = request.POST.get('down_payment_safe')
+                    safe = get_object_or_404(Safe, pk=safe_id) if safe_id else Safe.objects.first()
                     if safe:
                         ReceiptVoucher.objects.create(
                             date=contract_instance.start_date,
@@ -67,16 +65,10 @@ def contract_create_view(request):
                 return redirect(reverse('accounting:contracts:detail', kwargs={'pk': contract_instance.pk}))
 
             # This is the preview step
-            # We generate temporary installments for preview without saving them
-            from accounting.services.contracts import generate_installments_for_contract
-            # A bit of a hack: we need a contract object to generate installments
-            # but we can't save it yet. We'll simulate it.
-            # This is a limitation of the current service design.
-            # A better way would be for the service to not require a saved contract.
-            # For now, we'll just show a confirmation page without the full table.
             context = {
                 'form_data': request.POST,
                 'contract': contract_instance,
+                'safes': Safe.objects.all(),
                 'page_title': 'مراجعة و تأكيد العقد'
             }
             return render(request, 'accounting/contracts/create_wizard_preview.html', context)
