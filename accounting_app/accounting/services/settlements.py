@@ -1,7 +1,6 @@
 from decimal import Decimal
 from datetime import date
-from django.db.models import Sum, F, Value
-from django.db.models.functions import Coalesce
+from django.db.models import Sum
 from django.db import transaction
 
 from accounting.models import PartnersGroup, PaymentVoucher, Settlement, Partner, Safe
