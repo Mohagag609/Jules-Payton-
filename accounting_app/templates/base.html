@@ -1,12 +1,12 @@
 {% load static %}
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}نظام المحاسبة{% endblock %}</title>
 
-    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+    <link href="{% static 'css/tailwind.css' %}?v=1" rel="stylesheet">
 
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 
@@ -21,8 +21,8 @@
     </style>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-100" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-    <div class="flex h-screen">
+<body class="bg-gray-100 text-gray-900" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <div class="flex h-screen bg-gray-100">
         <!-- Sidebar -->
         {% include '_sidebar.html' %}
 
@@ -32,10 +32,8 @@
             {% include '_navbar.html' %}
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
-                <div class="container mx-auto px-6 py-8">
-                    {% block content %}{% endblock %}
-                </div>
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+                {% block content %}{% endblock %}
             </main>
         </div>
     </div>

@@ -1,23 +1,16 @@
+{% extends "base.html" %}
 {% load humanize %}
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>تقرير الأقساط</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Cairo', sans-serif; }
-    </style>
-</head>
-<body class="bg-gray-100 p-8">
-    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold text-center mb-4">تقرير الأقساط</h1>
-        <p class="text-center text-gray-600 mb-6">
-            {% if selected_customer %}العميل: {{ selected_customer.name }}{% endif %}
-            {% if selected_status %} | الحالة: {{ selected_status }}{% endif %}
-        </p>
 
+{% block title %}تقرير الأقساط{% endblock %}
+
+{% block content %}
+    <h1 class="text-2xl font-bold text-gray-800">تقرير الأقساط</h1>
+    <p class="text-gray-600 mb-6">
+        {% if selected_customer %}العميل: {{ selected_customer.name }}{% endif %}
+        {% if selected_status %} | الحالة: {{ selected_status }}{% endif %}
+    </p>
+
+    <div class="bg-white p-6 rounded-xl shadow-md">
         <table class="w-full text-sm text-right text-gray-500">
             <thead class="text-xs text-gray-700 uppercase bg-gray-200">
                 <tr>
@@ -60,5 +53,4 @@
             {% endwith %}
         </table>
     </div>
-</body>
-</html>
+{% endblock %}
