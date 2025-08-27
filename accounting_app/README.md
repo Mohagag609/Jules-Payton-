@@ -74,9 +74,30 @@ python manage.py test accounting
 
 ---
 
-## ☁️ Production Deployment (Netlify + Neon)
+## ☁️ Production Deployment
 
-This project is configured for deployment on Netlify with a PostgreSQL database from Neon.
+This project is pre-configured for deployment on two popular platforms: **Render** and **Netlify**.
+
+### Option 1: Deploying on Render (Recommended)
+
+Render provides a seamless experience for Django applications with a built-in PostgreSQL database. The repository includes a `render.yaml` file that automates the entire setup.
+
+1.  Push your code to a GitHub repository.
+2.  Go to the [Render Blueprint dashboard](https://dashboard.render.com/blueprints) and click "New Blueprint Instance".
+3.  Select your repository and click "Approve".
+4.  Render will read the `render.yaml` file and automatically provision:
+    - A PostgreSQL database.
+    - A web service running Gunicorn.
+5.  It will also automatically set the `DATABASE_URL` and `DJANGO_SECRET_KEY` environment variables.
+6.  The first build will run `pip install`, `collectstatic`, and `migrate`. Your application will be live in a few minutes.
+7.  To create a superuser, go to your service's dashboard in Render, click on the "Shell" tab, and run:
+    ```bash
+    python manage.py createsuperuser
+    ```
+
+### Option 2: Deploying on Netlify + Neon
+
+This project is also configured for deployment on Netlify with a PostgreSQL database from Neon.
 
 ### Step 1: Set up Neon Database
 
