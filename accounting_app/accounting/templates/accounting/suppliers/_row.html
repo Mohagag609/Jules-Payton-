@@ -6,7 +6,7 @@
     <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
         <button
             hx-get="{% url 'accounting:suppliers:edit' pk=supplier.pk %}"
-            hx-target="#modal-content"
+            hx-target="#modal-body"
             onclick="openModal()"
             class="text-blue-600 hover:text-blue-800 font-medium">
             تعديل

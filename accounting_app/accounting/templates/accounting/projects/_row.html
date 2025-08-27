@@ -11,7 +11,7 @@
     <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
         <button
             hx-get="{% url 'accounting:projects_store:project_edit' pk=project.pk %}"
-            hx-target="#modal-content"
+            hx-target="#modal-body"
             onclick="openModal()"
             class="text-blue-600 hover:text-blue-800 font-medium">
             تعديل
