@@ -1,7 +1,26 @@
 [build]
   base = "accounting_app"
   publish = "staticfiles"
-  command = "python3 -V && pip3 install --upgrade pip && pip3 install -r requirements.txt && python3 manage.py collectstatic --noinput"
+  # تشخيص قبل collectstatic: يطبع إذا كان staticfiles موجود ويطبع المسار الحقيقي للـ settings
+  command = """
+  python3 - <<'PY'
+import os, importlib, sys
+os.environ.setdefault('DJANGO_SETTINGS_MODULE','accounting_app.settings')
+print('DJANGO_SETTINGS_MODULE =', os.environ.get('DJANGO_SETTINGS_MODULE'))
+try:
+    settings = importlib.import_module(os.environ['DJANGO_SETTINGS_MODULE'])
+    from django.conf import settings as dj_settings
+    print('Loaded settings from:', settings.__file__)
+    print('Has django.contrib.staticfiles?:', 'django.contrib.staticfiles' in getattr(dj_settings, 'INSTALLED_APPS', []))
+except Exception as e:
+    print('SETTINGS IMPORT ERROR:', e)
+    sys.exit(1)
+PY
+  && python3 -V
+  && pip3 install --upgrade pip
+  && pip3 install -r requirements.txt
+  && python3 manage.py collectstatic --noinput
+  """
 
 [build.environment]
   DJANGO_SETTINGS_MODULE = "accounting_app.settings"
