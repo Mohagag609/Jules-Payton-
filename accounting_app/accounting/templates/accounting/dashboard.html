@@ -1,165 +1,698 @@
-{% extends "base.html" %}
-{% load i18n %}
+{% extends 'base.html' %}
+{% load static %}
 {% load humanize %}
 
-{% block title %}لوحة التحكم{% endblock %}
+{% block title %}لوحة التحكم - نظام إدارة العقارات الفاخر{% endblock %}
+
+{% block page_title %}لوحة التحكم الرئيسية{% endblock %}
 
 {% block content %}
-    <h1 class="text-3xl font-bold text-gray-800 mb-6">لوحة التحكم</h1>
+<!-- Dashboard Filters -->
+<div class="luxury-card fade-in">
+    <form method="get" class="filter-form">
+        <div class="row align-items-end g-3">
+            <div class="col-md-3">
+                <label class="form-label">من تاريخ</label>
+                <input type="date" name="from_date" class="form-control form-control-luxury" 
+                       value="{{ from_date }}" onchange="this.form.submit()">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">إلى تاريخ</label>
+                <input type="date" name="to_date" class="form-control form-control-luxury" 
+                       value="{{ to_date }}" onchange="this.form.submit()">
+            </div>
+            <div class="col-md-6 text-end">
+                <button type="button" class="btn-luxury btn-gold" onclick="exportDashboard()">
+                    <i class="bi bi-file-earmark-excel"></i> تصدير Excel
+                </button>
+                <button type="button" class="btn-luxury" onclick="printSection('dashboard-content')">
+                    <i class="bi bi-printer"></i> طباعة
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn-luxury btn-outline">
+                    <i class="bi bi-arrow-clockwise"></i> إعادة تعيين
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
 
+<div id="dashboard-content">
     <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
-            <div>
-                <h2 class="text-sm font-medium text-gray-500">إجمالي القبض</h2>
-                <p class="text-3xl font-bold text-green-600 mt-2">{{ total_receipts|intcomma }}</p>
-            </div>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
-            <div>
-                <h2 class="text-sm font-medium text-gray-500">إجمالي الصرف</h2>
-                <p class="text-3xl font-bold text-red-600 mt-2">{{ total_payments|intcomma }}</p>
-            </div>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
-            <div>
-                <h2 class="text-sm font-medium text-gray-500">الرصيد الصافي</h2>
-                <p class="text-3xl font-bold text-blue-600 mt-2">{{ net_balance|intcomma }}</p>
-            </div>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md flex items-center justify-between">
-            <div>
-                <h2 class="text-sm font-medium text-gray-500">أقساط متأخرة</h2>
-                <p class="text-3xl font-bold text-yellow-600 mt-2">{{ late_installments_count }}</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Alerts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-        <!-- Late Installments -->
-        <div class="bg-white p-6 rounded-xl shadow-md">
-            <h3 class="text-lg font-bold text-red-700 mb-4">تنبيهات: أقساط متأخرة</h3>
-            {% if late_installments %}
-                <ul class="divide-y divide-gray-200">
-                    {% for inst in late_installments|slice:":5" %}
-                        <li class="py-2 flex justify-between items-center">
-                            <span>{{ inst.contract.customer.name }} - قسط رقم {{ inst.seq_no }}</span>
-                            <span class="font-mono text-red-500">{{ inst.amount|intcomma }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-500">لا توجد أقساط متأخرة حالياً.</p>
-            {% endif %}
-        </div>
-        <!-- Installments Due Soon -->
-        <div class="bg-white p-6 rounded-xl shadow-md">
-            <h3 class="text-lg font-bold text-yellow-700 mb-4">تنبيهات: أقساط تستحق قريباً</h3>
-            {% if due_soon_installments %}
-                <ul class="divide-y divide-gray-200">
-                    {% for inst in due_soon_installments|slice:":5" %}
-                        <li class="py-2 flex justify-between items-center">
-                            <span>{{ inst.contract.customer.name }} - يستحق في {{ inst.due_date|date:"Y-m-d" }}</span>
-                            <span class="font-mono text-yellow-600">{{ inst.amount|intcomma }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-500">لا توجد أقساط مستحقة خلال الأسبوع القادم.</p>
-            {% endif %}
-        </div>
-        <!-- Low Stock -->
-        <div class="bg-white p-6 rounded-xl shadow-md">
-            <h3 class="text-lg font-bold text-purple-700 mb-4">تنبيهات: مخزون منخفض</h3>
-            {% if low_stock_items %}
-                <ul class="divide-y divide-gray-200">
-                    {% for item in low_stock_items|slice:":5" %}
-                        <li class="py-2 flex justify-between items-center">
-                            <span>{{ item.name }}</span>
-                            <span class="font-mono text-purple-500">الرصيد: {{ item.get_stock_balance|intcomma }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-500">لا توجد أصناف تحت الحد الأدنى.</p>
-            {% endif %}
-        </div>
-        <!-- Projects Over Budget -->
-        <div class="bg-white p-6 rounded-xl shadow-md">
-            <h3 class="text-lg font-bold text-orange-700 mb-4">تنبيهات: تجاوز الميزانية</h3>
-            {% if projects_over_budget %}
-                <ul class="divide-y divide-gray-200">
-                    {% for p in projects_over_budget|slice:":5" %}
-                        <li class="py-2 flex justify-between items-center">
-                            <span>{{ p.name }}</span>
-                            <span class="font-mono text-orange-500">المنصرف: {{ p.total_expenses|intcomma }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-500">لا توجد مشاريع متجاوزة للميزانية.</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="bg-white p-6 rounded-xl shadow-md">
-        <h3 class="text-xl font-bold text-gray-800 mb-4">آخر الحركات المالية</h3>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Last Receipts -->
-            <div>
-                <h4 class="text-lg font-semibold text-gray-700 mb-2">آخر سندات القبض</h4>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-right text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-4 py-3">التاريخ</th>
-                                <th scope="col" class="px-4 py-3">البيان</th>
-                                <th scope="col" class="px-4 py-3">المبلغ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for receipt in last_receipts %}
-                                <tr class="border-b hover:bg-gray-50">
-                                    <td class="px-4 py-2">{{ receipt.date|date:"Y-m-d" }}</td>
-                                    <td class="px-4 py-2">{{ receipt.description|truncatechars:30 }}</td>
-                                    <td class="px-4 py-2 text-green-600 font-mono">{{ receipt.amount|intcomma }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="3" class="text-center py-4">لا توجد سندات قبض.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+    <div class="row g-4 mb-4">
+        <!-- Total Sales -->
+        <div class="col-xl-3 col-md-6 slide-up">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1e40af);">
+                    <i class="bi bi-graph-up-arrow"></i>
+                </div>
+                <div class="stat-value">{{ kpis.financial.total_sales|floatformat:0|intcomma }}</div>
+                <div class="stat-label">إجمالي المبيعات</div>
+                <div class="stat-trend positive">
+                    <i class="bi bi-arrow-up"></i> 12.5% من الشهر الماضي
                 </div>
             </div>
-            <!-- Last Payments -->
-            <div>
-                <h4 class="text-lg font-semibold text-gray-700 mb-2">آخر سندات الصرف</h4>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-right text-gray-500">
-                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-4 py-3">التاريخ</th>
-                                <th scope="col" class="px-4 py-3">البيان</th>
-                                <th scope="col" class="px-4 py-3">المبلغ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in last_payments %}
-                                <tr class="border-b hover:bg-gray-50">
-                                    <td class="px-4 py-2">{{ payment.date|date:"Y-m-d" }}</td>
-                                    <td class="px-4 py-2">{{ payment.description|truncatechars:30 }}</td>
-                                    <td class="px-4 py-2 text-red-600 font-mono">{{ payment.amount|intcomma }}</td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="3" class="text-center py-4">لا توجد سندات صرف.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        </div>
+
+        <!-- Total Receipts -->
+        <div class="col-xl-3 col-md-6 slide-up" style="animation-delay: 0.1s;">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #16a34a, #059669);">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <div class="stat-value">{{ kpis.financial.total_receipts|floatformat:0|intcomma }}</div>
+                <div class="stat-label">إجمالي المتحصلات</div>
+                <div class="stat-percentage">
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: {{ kpis.financial.collection_percentage }}%"></div>
+                    </div>
+                    <span>{{ kpis.financial.collection_percentage }}% نسبة التحصيل</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Debt -->
+        <div class="col-xl-3 col-md-6 slide-up" style="animation-delay: 0.2s;">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-value">{{ kpis.financial.total_debt|floatformat:0|intcomma }}</div>
+                <div class="stat-label">إجمالي المديونية</div>
+                <div class="stat-trend negative">
+                    <i class="bi bi-arrow-down"></i> 8.2% انخفاض
+                </div>
+            </div>
+        </div>
+
+        <!-- Net Profit -->
+        <div class="col-xl-3 col-md-6 slide-up" style="animation-delay: 0.3s;">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                    <i class="bi bi-trophy"></i>
+                </div>
+                <div class="stat-value">{{ kpis.financial.net_profit|floatformat:0|intcomma }}</div>
+                <div class="stat-label">صافي الربح</div>
+                <div class="stat-badge badge-luxury badge-gold">
+                    <i class="bi bi-star-fill"></i> ممتاز
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Monthly Revenue Chart -->
+        <div class="col-xl-8">
+            <div class="luxury-card">
+                <div class="card-header-luxury">
+                    <h3>الإيرادات الشهرية</h3>
+                    <div class="card-actions">
+                        <button class="icon-btn-sm" onclick="changeChartType('line')">
+                            <i class="bi bi-graph-up"></i>
+                        </button>
+                        <button class="icon-btn-sm" onclick="changeChartType('bar')">
+                            <i class="bi bi-bar-chart"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container-luxury">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unit Status Chart -->
+        <div class="col-xl-4">
+            <div class="luxury-card">
+                <div class="card-header-luxury">
+                    <h3>حالة الوحدات</h3>
+                    <span class="badge-luxury badge-primary">{{ kpis.units.total }} وحدة</span>
+                </div>
+                <div class="chart-container-luxury">
+                    <canvas id="unitStatusChart"></canvas>
+                </div>
+                <div class="legend-luxury">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #2563eb;"></span>
+                        <span>متاحة ({{ kpis.units.available }})</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #16a34a;"></span>
+                        <span>مباعة ({{ kpis.units.sold }})</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #f59e0b;"></span>
+                        <span>محجوزة ({{ kpis.units.reserved }})</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background: #ef4444;"></span>
+                        <span>مرتجعة ({{ kpis.units.returned }})</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="row g-4">
+        <!-- Upcoming Installments -->
+        <div class="col-xl-7">
+            <div class="luxury-card">
+                <div class="card-header-luxury">
+                    <h3>الأقساط القادمة والمتأخرة</h3>
+                    <a href="{% url 'installment_list' %}" class="btn-luxury btn-sm">
+                        عرض الكل <i class="bi bi-arrow-left"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="luxury-table">
+                        <thead>
+                            <tr>
+                                <th>الوحدة</th>
+                                <th>العميل</th>
+                                <th>المبلغ</th>
+                                <th>تاريخ الاستحقاق</th>
+                                <th>الحالة</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for installment in upcoming_installments %}
+                            <tr class="{% if installment.days_until_due < 0 %}table-danger{% elif installment.days_until_due < 7 %}table-warning{% endif %}">
+                                <td>
+                                    <div class="unit-badge">
+                                        <i class="bi bi-building"></i>
+                                        {{ installment.unit }}
+                                    </div>
+                                </td>
+                                <td>{{ installment.customer }}</td>
+                                <td class="text-bold">{{ installment.amount|floatformat:0|intcomma }} ج.م</td>
+                                <td>
+                                    {{ installment.due_date|date:"Y/m/d" }}
+                                    <small class="text-{{ installment.status_class }}">
+                                        {% if installment.days_until_due < 0 %}
+                                            متأخر {{ installment.days_until_due|abs }} يوم
+                                        {% elif installment.days_until_due == 0 %}
+                                            اليوم
+                                        {% else %}
+                                            بعد {{ installment.days_until_due }} يوم
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge-luxury badge-{{ installment.status_class }}">
+                                        {{ installment.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn-luxury btn-sm btn-gold" 
+                                            hx-get="{% url 'installment_pay' installment.id %}"
+                                            hx-target="#modal-body"
+                                            hx-trigger="click"
+                                            onclick="openModal('تسجيل دفعة')">
+                                        <i class="bi bi-cash"></i> دفع
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="empty-state-mini">
+                                        <i class="bi bi-calendar-check"></i>
+                                        <p>لا توجد أقساط مستحقة</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="col-xl-5">
+            <div class="luxury-card">
+                <div class="card-header-luxury">
+                    <h3>آخر الحركات المالية</h3>
+                    <a href="{% url 'voucher_list' %}" class="btn-luxury btn-sm">
+                        عرض الكل <i class="bi bi-arrow-left"></i>
+                    </a>
+                </div>
+                <div class="transactions-list">
+                    {% for transaction in recent_transactions %}
+                    <div class="transaction-item">
+                        <div class="transaction-icon {{ transaction.color }}">
+                            <i class="bi {{ transaction.icon }}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <div class="transaction-desc">{{ transaction.description|truncatechars:50 }}</div>
+                            <div class="transaction-meta">
+                                <span><i class="bi bi-safe"></i> {{ transaction.safe }}</span>
+                                <span><i class="bi bi-calendar3"></i> {{ transaction.date|date:"Y/m/d" }}</span>
+                            </div>
+                        </div>
+                        <div class="transaction-amount {{ transaction.color }}">
+                            {% if transaction.type == 'receipt' %}+{% else %}-{% endif %}
+                            {{ transaction.amount|floatformat:0|intcomma }}
+                            <small>ج.م</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state-mini">
+                        <i class="bi bi-receipt-cutoff"></i>
+                        <p>لا توجد حركات مالية</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partner Profits Summary -->
+    <div class="row g-4 mt-4">
+        <div class="col-12">
+            <div class="luxury-card">
+                <div class="card-header-luxury">
+                    <h3>ملخص أرباح الشركاء</h3>
+                    <a href="{% url 'partner_reports' %}" class="btn-luxury btn-sm">
+                        تقارير مفصلة <i class="bi bi-arrow-left"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="luxury-table">
+                        <thead>
+                            <tr>
+                                <th>الشريك</th>
+                                <th>عدد الوحدات</th>
+                                <th>إجمالي قيمة الحصص</th>
+                                <th>إجمالي المتحصلات</th>
+                                <th>نسبة الربح</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for profit in partner_profits %}
+                            <tr>
+                                <td>
+                                    <div class="partner-info">
+                                        <i class="bi bi-person-badge-fill"></i>
+                                        {{ profit.partner.name }}
+                                    </div>
+                                </td>
+                                <td>{{ profit.total_units }}</td>
+                                <td>{{ profit.total_share_value|floatformat:0|intcomma }} ج.م</td>
+                                <td class="text-success">{{ profit.total_receipts|floatformat:0|intcomma }} ج.م</td>
+                                <td>
+                                    <div class="profit-indicator">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" style="width: {{ profit.profit_percentage }}%"></div>
+                                        </div>
+                                        <span>{{ profit.profit_percentage }}%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{% url 'partner_detail' profit.partner.id %}" class="btn-luxury btn-sm">
+                                        <i class="bi bi-eye"></i> التفاصيل
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">
+                                    <div class="empty-state-mini">
+                                        <i class="bi bi-people"></i>
+                                        <p>لا توجد بيانات للشركاء</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Styles -->
+<style>
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.stat-trend {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-trend.positive {
+    color: var(--success);
+}
+
+.stat-trend.negative {
+    color: var(--danger);
+}
+
+.stat-percentage {
+    margin-top: 0.5rem;
+}
+
+.stat-percentage .progress {
+    height: 6px;
+    margin-bottom: 0.25rem;
+}
+
+.stat-percentage span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.stat-badge {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+}
+
+.card-header-luxury {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.card-header-luxury h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-btn-sm {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.icon-btn-sm:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.chart-container-luxury {
+    position: relative;
+    height: 300px;
+    margin-bottom: 1rem;
+}
+
+.legend-luxury {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-sm);
+}
+
+.unit-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.text-bold {
+    font-weight: 700;
+}
+
+.transactions-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
+}
+
+.transaction-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    font-size: 1.25rem;
+}
+
+.transaction-icon.success {
+    background: rgba(22, 163, 74, 0.1);
+    color: var(--success);
+}
+
+.transaction-icon.danger {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--danger);
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-desc {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.transaction-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.transaction-meta i {
+    margin-left: 0.25rem;
+}
+
+.transaction-amount {
+    text-align: left;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.transaction-amount small {
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.partner-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.profit-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.profit-indicator .progress {
+    height: 8px;
+}
+
+.profit-indicator span {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.empty-state-mini {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+}
+
+.empty-state-mini i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart Configuration
+Chart.defaults.font.family = "'Cairo', 'Inter', sans-serif";
+Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--text-primary');
+
+// Monthly Revenue Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const monthlyRevenueData = {{ monthly_revenue_data|safe }};
+
+const revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: monthlyRevenueData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.y.toLocaleString('ar-EG') + ' ج.م';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString('ar-EG');
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Unit Status Chart
+const unitCtx = document.getElementById('unitStatusChart').getContext('2d');
+const unitChartData = {{ unit_chart_data|safe }};
+
+const unitChart = new Chart(unitCtx, {
+    type: 'doughnut',
+    data: {
+        labels: unitChartData.labels,
+        datasets: [{
+            data: unitChartData.data,
+            backgroundColor: unitChartData.colors,
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13
+                },
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((context.parsed / total) * 100).toFixed(1);
+                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        },
+        cutout: '70%'
+    }
+});
+
+// Change Chart Type
+function changeChartType(type) {
+    revenueChart.config.type = type;
+    revenueChart.update();
+}
+
+// Export Dashboard
+function exportDashboard() {
+    showToast('جاري تصدير البيانات...', 'info');
+    
+    // Simulate export
+    setTimeout(() => {
+        window.location.href = '{% url "dashboard_export" %}?from_date={{ from_date }}&to_date={{ to_date }}';
+        showToast('تم تصدير البيانات بنجاح', 'success');
+    }, 1000);
+}
+
+// Auto-refresh every 5 minutes
+setInterval(() => {
+    if (!document.hidden) {
+        htmx.ajax('GET', window.location.href, {
+            target: '#dashboard-content',
+            swap: 'outerHTML'
+        });
+    }
+}, 300000);
+</script>
 {% endblock %}

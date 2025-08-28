@@ -9,6 +9,9 @@ class Unit(models.Model):
         RESIDENTIAL = 'residential', 'سكني'
         COMMERCIAL = 'commercial', 'تجاري'
         SCHOOL = 'school', 'مدرسة'
+        ADMINISTRATIVE = 'administrative', 'إداري'
+        MEDICAL = 'medical', 'طبي'
+        INDUSTRIAL = 'industrial', 'صناعي'
         OTHER = 'other', 'أخرى'
 
     class UnitGroup(models.TextChoices):
@@ -28,6 +31,33 @@ class Unit(models.Model):
         max_length=50,
         blank=True,
         verbose_name="رقم المبنى/العمارة"
+    )
+    floor = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="رقم الدور"
+    )
+    area = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="المساحة (م²)"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('available', 'متاحة'),
+            ('sold', 'مباعة'),
+            ('reserved', 'محجوزة'),
+            ('returned', 'مرتجعة'),
+        ],
+        default='available',
+        verbose_name="الحالة"
+    )
+    notes = models.TextField(
+        blank=True,
+        verbose_name="ملاحظات"
     )
     type = models.CharField(
         max_length=20,

@@ -8,9 +8,15 @@ class Installment(models.Model):
     يمثل قسطاً واحداً من جدول أقساط العقد.
     """
     class InstallmentStatus(models.TextChoices):
-        PENDING = 'PENDING', 'قيد الانتظار'
+        PENDING = 'PENDING', 'غير مدفوع'
         PAID = 'PAID', 'مدفوع'
         LATE = 'LATE', 'متأخر'
+        PARTIAL = 'PARTIAL', 'مدفوع جزئياً'
+    
+    class InstallmentType(models.TextChoices):
+        REGULAR = 'regular', 'عادي'
+        ANNUAL = 'annual', 'دفعة سنوية'
+        MAINTENANCE = 'maintenance', 'دفعة صيانة'
 
     contract = models.ForeignKey(
         Contract,
@@ -24,10 +30,23 @@ class Installment(models.Model):
     due_date = models.DateField(
         verbose_name="تاريخ الاستحقاق"
     )
+    type = models.CharField(
+        max_length=20,
+        choices=InstallmentType.choices,
+        default=InstallmentType.REGULAR,
+        verbose_name="نوع القسط"
+    )
     amount = models.DecimalField(
         max_digits=15,
         decimal_places=2,
         verbose_name="قيمة القسط"
+    )
+    original_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="المبلغ الأصلي"
     )
     paid_amount = models.DecimalField(
         max_digits=15,
@@ -57,6 +76,8 @@ class Installment(models.Model):
         """
         if self.paid_amount >= self.amount:
             self.status = self.InstallmentStatus.PAID
+        elif self.paid_amount > 0:
+            self.status = self.InstallmentStatus.PARTIAL
         elif timezone.now().date() > self.due_date:
             self.status = self.InstallmentStatus.LATE
         else:

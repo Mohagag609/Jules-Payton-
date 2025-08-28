@@ -22,10 +22,27 @@ class Customer(models.Model):
         blank=True,
         verbose_name="البريد الإلكتروني"
     )
-    address = models.CharField(
-        max_length=500,
+    national_id = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name="الرقم القومي"
+    )
+    address = models.TextField(
         blank=True,
         verbose_name="العنوان"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('active', 'نشط'),
+            ('suspended', 'موقوف'),
+        ],
+        default='active',
+        verbose_name="الحالة"
+    )
+    notes = models.TextField(
+        blank=True,
+        verbose_name="ملاحظات"
     )
     is_active = models.BooleanField(
         default=True,

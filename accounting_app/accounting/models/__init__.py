@@ -11,6 +11,12 @@ from .items_store import Item
 from .stock_moves import StockMove
 from .vouchers import ReceiptVoucher, PaymentVoucher
 from .settlements import Settlement
+from .brokers import Broker, BrokerDue
+from .unit_partners import UnitPartner
+from .transfers import Transfer
+from .partner_debts import PartnerDebt
+from .user_settings import UserSettings
+from .audit_log import AuditLog
 
 __all__ = [
     'Partner',
@@ -28,4 +34,11 @@ __all__ = [
     'ReceiptVoucher',
     'PaymentVoucher',
     'Settlement',
+    'Broker',
+    'BrokerDue',
+    'UnitPartner',
+    'Transfer',
+    'PartnerDebt',
+    'UserSettings',
+    'AuditLog',
 ]

@@ -1,0 +1,509 @@
+<!-- Premium Navbar -->
+<div class="navbar-content">
+    <!-- Right Section -->
+    <div class="navbar-left">
+        <!-- Page Title -->
+        <h1 class="page-title">{% block page_title %}لوحة التحكم{% endblock %}</h1>
+        
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-item">
+                <i class="bi bi-building"></i>
+                <span>{{ available_units|default:0 }} وحدة متاحة</span>
+            </div>
+            <div class="stat-item">
+                <i class="bi bi-cash-stack"></i>
+                <span>{{ total_balance|default:"0" }} ج.م</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Left Section -->
+    <div class="navbar-right">
+        <!-- Search -->
+        <div class="navbar-search">
+            <i class="bi bi-search"></i>
+            <input type="search" 
+                   placeholder="ابحث عن وحدة، عميل، عقد..." 
+                   class="search-input"
+                   hx-get="{% url 'global_search' %}"
+                   hx-trigger="keyup changed delay:500ms"
+                   hx-target="#search-results"
+                   hx-indicator="#search-spinner">
+            <span id="search-spinner" class="htmx-indicator">
+                <i class="bi bi-arrow-repeat spin"></i>
+            </span>
+            <div id="search-results" class="search-dropdown"></div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <!-- Add New Dropdown -->
+            <div class="dropdown">
+                <button class="icon-btn" data-bs-toggle="dropdown" title="إضافة جديد" data-shortcut="new">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'unit_create' %}">
+                        <i class="bi bi-building-add"></i> وحدة جديدة
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'contract_create' %}">
+                        <i class="bi bi-file-earmark-plus"></i> عقد جديد
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'customer_create' %}">
+                        <i class="bi bi-person-plus"></i> عميل جديد
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'voucher_create' %}">
+                        <i class="bi bi-receipt"></i> سند قبض/صرف
+                    </a></li>
+                </ul>
+            </div>
+
+            <!-- Notifications -->
+            <div class="dropdown">
+                <button class="icon-btn" data-bs-toggle="dropdown" title="الإشعارات">
+                    <i class="bi bi-bell"></i>
+                    {% if notifications_count > 0 %}
+                    <span class="notification-badge">{{ notifications_count }}</span>
+                    {% endif %}
+                </button>
+                <div class="dropdown-menu dropdown-menu-end notifications-dropdown">
+                    <div class="dropdown-header">
+                        <h6>الإشعارات</h6>
+                        <a href="#" class="text-primary">مسح الكل</a>
+                    </div>
+                    <div class="notifications-list">
+                        {% for notification in recent_notifications %}
+                        <a href="{{ notification.link }}" class="notification-item">
+                            <i class="bi {{ notification.icon }}"></i>
+                            <div class="notification-content">
+                                <p>{{ notification.message }}</p>
+                                <small>{{ notification.time|timesince }} مضت</small>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="empty-notifications">
+                            <i class="bi bi-bell-slash"></i>
+                            <p>لا توجد إشعارات جديدة</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Toggle -->
+            <button class="icon-btn" onclick="toggleTheme()" title="تبديل المظهر">
+                <i class="bi bi-moon-stars-fill theme-icon-dark"></i>
+                <i class="bi bi-sun-fill theme-icon-light"></i>
+            </button>
+
+            <!-- Fullscreen -->
+            <button class="icon-btn" onclick="toggleFullscreen()" title="ملء الشاشة">
+                <i class="bi bi-fullscreen"></i>
+            </button>
+
+            <!-- User Menu -->
+            <div class="dropdown">
+                <button class="user-menu-btn" data-bs-toggle="dropdown">
+                    <img src="{% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=1e3a8a&color=fff&size=32&font-size=0.5&rounded=true{% endif %}" 
+                         alt="Avatar" class="user-menu-avatar">
+                    <span class="user-menu-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+                    <li class="user-dropdown-header">
+                        <div class="user-info-detailed">
+                            <img src="{% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=1e3a8a&color=fff&size=64&font-size=0.5&rounded=true{% endif %}" 
+                                 alt="Avatar">
+                            <div>
+                                <h6>{{ request.user.get_full_name|default:request.user.username }}</h6>
+                                <p>{{ request.user.email }}</p>
+                            </div>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'profile' %}">
+                        <i class="bi bi-person"></i> الملف الشخصي
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'settings' %}">
+                        <i class="bi bi-gear"></i> الإعدادات
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'lock_app' %}">
+                        <i class="bi bi-lock"></i> قفل التطبيق
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                        <i class="bi bi-box-arrow-left"></i> تسجيل الخروج
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Navbar Styles */
+.luxury-navbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-md) var(--space-xl);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    background: rgba(var(--bg-secondary-rgb), 0.95);
+}
+
+.navbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xl);
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xl);
+}
+
+.page-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.quick-stats {
+    display: flex;
+    gap: var(--space-lg);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.stat-item i {
+    color: var(--primary);
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+/* Search */
+.navbar-search {
+    position: relative;
+    width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md) var(--space-sm) 2.5rem;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+.navbar-search > i {
+    position: absolute;
+    right: var(--space-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-xs);
+    box-shadow: var(--shadow-lg);
+    max-height: 400px;
+    overflow-y: auto;
+    display: none;
+}
+
+.search-dropdown:not(:empty) {
+    display: block;
+}
+
+/* Quick Actions */
+.quick-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.icon-btn:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    background: var(--danger);
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: var(--radius-full);
+    min-width: 18px;
+    text-align: center;
+}
+
+/* Theme Toggle */
+.theme-icon-dark { display: none; }
+.theme-icon-light { display: block; }
+[data-theme="dark"] .theme-icon-dark { display: block; }
+[data-theme="dark"] .theme-icon-light { display: none; }
+
+/* User Menu */
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-md);
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.user-menu-btn:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--primary);
+}
+
+.user-menu-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+}
+
+.user-menu-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    padding: var(--space-sm);
+    min-width: 200px;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.dropdown-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--primary);
+}
+
+.dropdown-item i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Notifications Dropdown */
+.notifications-dropdown {
+    width: 360px;
+    max-height: 480px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.notifications-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-sm);
+}
+
+.notification-item {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.notification-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.notification-item i {
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+.notification-content p {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.notification-content small {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.empty-notifications {
+    padding: var(--space-2xl);
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.empty-notifications i {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    opacity: 0.3;
+}
+
+/* User Dropdown */
+.user-dropdown {
+    width: 280px;
+}
+
+.user-dropdown-header {
+    padding: var(--space-md);
+}
+
+.user-info-detailed {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+.user-info-detailed img {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+}
+
+.user-info-detailed h6 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.user-info-detailed p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Animations */
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar-search {
+        display: none;
+    }
+    
+    .quick-stats {
+        display: none;
+    }
+    
+    .page-title {
+        font-size: 1.25rem;
+    }
+}
+</style>
+
+<script>
+// Theme Toggle
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    
+    // Save preference via AJAX
+    fetch('{% url "update_theme" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ theme: newTheme })
+    });
+}
+
+// Fullscreen Toggle
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+</script>

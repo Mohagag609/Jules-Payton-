@@ -60,6 +60,57 @@ class Contract(models.Model):
         blank=True,
         verbose_name="مجموعة الشركاء (اختياري)"
     )
+    # Commission fields
+    broker_name = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="اسم السمسار"
+    )
+    broker_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        verbose_name="نسبة العمولة %"
+    )
+    broker_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="مبلغ العمولة"
+    )
+    commission_safe = models.ForeignKey(
+        'Safe',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='contract_commissions',
+        verbose_name="خزنة العمولة"
+    )
+    # Financial fields
+    discount_amount = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="مبلغ الخصم"
+    )
+    maintenance_deposit = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="وديعة الصيانة"
+    )
+    # Annual payment fields
+    extra_annual = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="عدد الدفعات السنوية الإضافية"
+    )
+    annual_payment_value = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        verbose_name="قيمة الدفعة السنوية"
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name="تاريخ الإنشاء"

@@ -1,0 +1,353 @@
+<!-- Premium Sidebar Navigation -->
+<nav class="sidebar-nav">
+    <div class="nav-section">
+        <div class="nav-section-title">الرئيسية</div>
+        
+        <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i>
+            <span class="nav-text">لوحة التحكم</span>
+            <span class="nav-badge badge-luxury badge-primary">جديد</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">إدارة العقارات</div>
+        
+        <a href="{% url 'unit_list' %}" class="nav-item {% if 'unit' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-building"></i>
+            <span class="nav-text">الوحدات</span>
+            {% if unit_count %}
+            <span class="nav-counter">{{ unit_count }}</span>
+            {% endif %}
+        </a>
+        
+        <a href="{% url 'contract_list' %}" class="nav-item {% if 'contract' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-file-text"></i>
+            <span class="nav-text">العقود</span>
+        </a>
+        
+        <a href="{% url 'installment_list' %}" class="nav-item {% if 'installment' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-calendar-check"></i>
+            <span class="nav-text">الأقساط</span>
+            {% if overdue_count > 0 %}
+            <span class="nav-counter warning">{{ overdue_count }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">الأطراف</div>
+        
+        <a href="{% url 'customer_list' %}" class="nav-item {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span class="nav-text">العملاء</span>
+        </a>
+        
+        <a href="{% url 'partner_list' %}" class="nav-item {% if 'partner' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-person-badge"></i>
+            <span class="nav-text">الشركاء</span>
+        </a>
+        
+        <a href="{% url 'broker_list' %}" class="nav-item {% if 'broker' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-person-lines-fill"></i>
+            <span class="nav-text">السماسرة</span>
+        </a>
+        
+        <a href="{% url 'supplier_list' %}" class="nav-item {% if 'supplier' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-truck"></i>
+            <span class="nav-text">الموردين</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">المالية</div>
+        
+        <a href="{% url 'treasury' %}" class="nav-item {% if 'treasury' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-safe"></i>
+            <span class="nav-text">الخزينة</span>
+        </a>
+        
+        <a href="{% url 'voucher_list' %}" class="nav-item {% if 'voucher' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-receipt"></i>
+            <span class="nav-text">السندات</span>
+        </a>
+        
+        <a href="{% url 'transfer_list' %}" class="nav-item {% if 'transfer' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-arrow-left-right"></i>
+            <span class="nav-text">التحويلات</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">التقارير</div>
+        
+        <a href="{% url 'reports' %}" class="nav-item {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-graph-up"></i>
+            <span class="nav-text">التقارير المالية</span>
+        </a>
+        
+        <a href="{% url 'partner_reports' %}" class="nav-item">
+            <i class="bi bi-pie-chart"></i>
+            <span class="nav-text">تقارير الشركاء</span>
+        </a>
+        
+        <a href="{% url 'unit_reports' %}" class="nav-item">
+            <i class="bi bi-bar-chart"></i>
+            <span class="nav-text">تقارير الوحدات</span>
+        </a>
+    </div>
+
+    <div class="nav-section">
+        <div class="nav-section-title">النظام</div>
+        
+        <a href="{% url 'audit_log' %}" class="nav-item {% if 'audit' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-clock-history"></i>
+            <span class="nav-text">سجل التتبع</span>
+        </a>
+        
+        <a href="{% url 'backup' %}" class="nav-item {% if 'backup' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-cloud-download"></i>
+            <span class="nav-text">النسخ الاحتياطي</span>
+        </a>
+        
+        <a href="{% url 'settings' %}" class="nav-item {% if 'settings' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-gear"></i>
+            <span class="nav-text">الإعدادات</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Sidebar Footer -->
+<div class="sidebar-footer">
+    <div class="user-info">
+        <img src="{% if request.user.profile.avatar %}{{ request.user.profile.avatar.url }}{% else %}https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=1e3a8a&color=fff&size=40&font-size=0.5&rounded=true{% endif %}" 
+             alt="Avatar" class="user-avatar">
+        <div class="user-details">
+            <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+            <div class="user-role">{{ request.user.groups.first.name|default:"مدير النظام" }}</div>
+        </div>
+    </div>
+    
+    <div class="sidebar-actions">
+        <button class="sidebar-action" onclick="toggleSidebar()" title="طي/فتح القائمة">
+            <i class="bi bi-chevron-double-right"></i>
+        </button>
+        <a href="{% url 'logout' %}" class="sidebar-action text-danger" title="تسجيل الخروج">
+            <i class="bi bi-box-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<style>
+/* Sidebar Styles */
+.luxury-sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    transition: width var(--transition-base);
+    position: relative;
+}
+
+.luxury-sidebar.collapsed {
+    width: 80px;
+}
+
+.luxury-sidebar.collapsed .nav-text,
+.luxury-sidebar.collapsed .nav-section-title,
+.luxury-sidebar.collapsed .user-details,
+.luxury-sidebar.collapsed .nav-badge,
+.luxury-sidebar.collapsed .nav-counter {
+    display: none;
+}
+
+.luxury-sidebar.collapsed .logo-text {
+    display: none;
+}
+
+.luxury-sidebar.collapsed .nav-item {
+    justify-content: center;
+}
+
+.sidebar-header {
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.logo i {
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md);
+}
+
+.nav-section {
+    margin-bottom: var(--space-xl);
+}
+
+.nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+    padding: 0 var(--space-sm);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    margin-bottom: var(--space-xs);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    transform: translateX(100%);
+    transition: transform var(--transition-base);
+}
+
+.nav-item:hover {
+    background: var(--bg-tertiary);
+    color: var(--primary);
+}
+
+.nav-item.active {
+    background: var(--bg-tertiary);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.nav-item.active::before {
+    transform: translateX(0);
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-badge {
+    margin-right: auto;
+    font-size: 0.625rem;
+    padding: 2px 6px;
+}
+
+.nav-counter {
+    margin-right: auto;
+    background: var(--primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+}
+
+.nav-counter.warning {
+    background: var(--danger);
+}
+
+.sidebar-footer {
+    padding: var(--space-lg);
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.sidebar-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.sidebar-action {
+    flex: 1;
+    padding: var(--space-sm);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+}
+
+.sidebar-action:hover {
+    background: var(--bg-primary);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+/* Custom Scrollbar for Sidebar */
+.sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--gray-400);
+    border-radius: var(--radius-full);
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-500);
+}
+</style>

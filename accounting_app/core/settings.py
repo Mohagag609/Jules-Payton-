@@ -48,6 +48,8 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'rest_framework',
+    'django_filters',
+    'import_export',
 
     # Local apps
     'accounting',
@@ -138,5 +140,27 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Feature Flags
+FEATURE_FLAGS = {
+    # Legacy Features
+    'LEGACY_PARTNER_RETURN_ENABLED': True,
+    'LEGACY_SMART_INSTALLMENTS_ENABLED': True,
+    'LEGACY_COMMISSION_TRACKING_ENABLED': True,
+    'LEGACY_INLINE_EDITING_ENABLED': True,
+    'LEGACY_UNDO_REDO_ENABLED': True,
+    'LEGACY_KEYBOARD_SHORTCUTS_ENABLED': True,
+    'LEGACY_IMPORT_EXPORT_ENABLED': True,
+    'LEGACY_AUDIT_LOG_ENABLED': True,
+    
+    # UI/UX Features
+    'LUXURY_THEME_ENABLED': True,
+    'TOAST_NOTIFICATIONS_ENABLED': True,
+    'GROUPED_VIEWS_ENABLED': True,
+    'EMPTY_STATES_ENABLED': True,
+    
+    # Development Features
+    'DEBUG_MODE': DEBUG,
+}
 
 LOGIN_URL = '/admin/login/'
