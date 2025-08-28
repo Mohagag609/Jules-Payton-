@@ -3,15 +3,12 @@ from accounting.views.dashboard import (
     undo_action, redo_action, update_theme, 
     global_search, lock_app, unlock_app
 )
-from accounting.views.test_dashboard import simple_dashboard_view, test_dashboard_data
+# Test views removed
 
 app_name = 'accounting'
 
 urlpatterns = [
-    # Test URLs (temporary)
-    path('test/', simple_dashboard_view, name='test_dashboard'),
-    path('test/data/', test_dashboard_data, name='test_data'),
-    
+
     # Dashboard
     path('', include('accounting.urls.dashboard')),
     

@@ -8,7 +8,7 @@ from accounting.views.dashboard import (
     dashboard_export_view,
     dashboard_print_view,
 )
-from accounting.views.simple_views import simple_dashboard
+from accounting.views.simple_fixed import simple_dashboard
 
 urlpatterns = [
     path('', simple_dashboard, name='dashboard'),  # Temporarily use simple dashboard
