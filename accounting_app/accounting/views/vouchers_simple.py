@@ -6,7 +6,6 @@ import json
 from accounting.models import ReceiptVoucher, PaymentVoucher
 from accounting.forms import ReceiptVoucherForm, PaymentVoucherForm
 
-# --- Receipt Voucher Views ---
 
 @login_required
 def receipt_voucher_list_view(request):
@@ -42,7 +41,6 @@ def receipt_voucher_list_view(request):
     }
     return render(request, 'accounting/vouchers/receipts.html', context)
 
-# --- Payment Voucher Views ---
 
 @login_required
 def payment_voucher_list_view(request):

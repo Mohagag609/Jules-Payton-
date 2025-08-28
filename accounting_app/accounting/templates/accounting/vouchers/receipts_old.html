@@ -54,9 +54,7 @@
         </table>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
 function showAddForm() {
     document.getElementById('form-modal').classList.remove('hidden');
@@ -64,6 +62,7 @@ function showAddForm() {
 
 function closeFormModal() {
     document.getElementById('form-modal').classList.add('hidden');
+    // Reset form if needed
     document.querySelector('#form-container form').reset();
 }
 
@@ -75,24 +74,11 @@ window.onclick = function(event) {
     }
 }
 
-// Listen for HTMX events
-document.body.addEventListener('showMessage', function(evt) {
-    const { message, type } = evt.detail;
-    if (type === 'success') {
-        showSuccessMessage(message);
-    } else {
-        showErrorMessage(message);
-    }
-});
-
-document.body.addEventListener('closeModal', function() {
-    closeFormModal();
-});
-
 // Handle successful form submission
 document.addEventListener('htmx:afterSwap', function(event) {
     if (event.detail.target.id === 'voucher-table-body') {
-        // Add highlight effect to new row
+        closeFormModal();
+        // إضافة تأثير للعنصر الجديد
         const newRow = event.detail.target.firstElementChild;
         if (newRow) {
             newRow.classList.add('bg-green-50');
@@ -103,5 +89,16 @@ document.addEventListener('htmx:afterSwap', function(event) {
         }
     }
 });
+
+// Listen for custom event to close modal and show message
+document.addEventListener('DOMContentLoaded', function() {
+    htmx.on('receiptAdded', function(evt) {
+        console.log('Receipt added event triggered');
+        closeFormModal();
+        showSuccessMessage('تم إضافة سند القبض بنجاح!');
+    });
+});
+
+
 </script>
 {% endblock %}

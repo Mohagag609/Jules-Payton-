@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
 
     <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-    <script src="{% static 'js/app.js' %}"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,6 +118,10 @@
             }, 5000);
         }
     </script>
+    
+    <!-- Messages Component -->
+    {% include 'components/messages.html' %}
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,87 @@
+<!-- Toast Messages Component -->
+<div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2">
+    <!-- Success Toast Template -->
+    <template id="success-toast-template">
+        <div class="toast-message bg-green-50 border-l-4 border-green-400 p-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] transform transition-all duration-300" 
+             style="opacity: 0; transform: translateX(100%);">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-green-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-green-800 font-medium message-text"></p>
+            </div>
+            <button onclick="removeToast(this)" class="text-green-400 hover:text-green-600 mr-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+    </template>
+
+    <!-- Error Toast Template -->
+    <template id="error-toast-template">
+        <div class="toast-message bg-red-50 border-l-4 border-red-400 p-4 rounded-lg shadow-lg flex items-center justify-between min-w-[300px] transform transition-all duration-300" 
+             style="opacity: 0; transform: translateX(100%);">
+            <div class="flex items-center">
+                <svg class="w-6 h-6 text-red-400 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-red-800 font-medium message-text"></p>
+            </div>
+            <button onclick="removeToast(this)" class="text-red-400 hover:text-red-600 mr-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+    </template>
+</div>
+
+<script>
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const template = document.getElementById(`${type}-toast-template`);
+    const clone = template.content.cloneNode(true);
+    
+    const toastEl = clone.querySelector('.toast-message');
+    clone.querySelector('.message-text').textContent = message;
+    
+    container.appendChild(clone);
+    
+    // Get the actual element after appending
+    const appendedToast = container.lastElementChild;
+    
+    // Animate in
+    setTimeout(() => {
+        appendedToast.style.opacity = '1';
+        appendedToast.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        removeToastElement(appendedToast);
+    }, 5000);
+}
+
+function removeToast(button) {
+    const toast = button.closest('.toast-message');
+    removeToastElement(toast);
+}
+
+function removeToastElement(toast) {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+        toast.remove();
+    }, 300);
+}
+
+// Global functions
+window.showSuccessMessage = function(message) {
+    showToast(message, 'success');
+};
+
+window.showErrorMessage = function(message) {
+    showToast(message, 'error');
+};
+</script>

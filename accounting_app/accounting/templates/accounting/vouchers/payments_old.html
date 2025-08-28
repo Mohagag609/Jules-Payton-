@@ -8,11 +8,11 @@
     <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
     <button 
         onclick="showAddForm()"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 flex items-center">
+        class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 flex items-center">
         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
-        إضافة سند قبض
+        إضافة سند صرف
     </button>
 </div>
 
@@ -20,7 +20,7 @@
 <div id="form-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
     <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
         <div class="flex justify-between items-center pb-3 border-b">
-            <h3 class="text-xl font-bold text-gray-900">إضافة سند قبض جديد</h3>
+            <h3 class="text-xl font-bold text-gray-900">إضافة سند صرف جديد</h3>
             <button onclick="closeFormModal()" class="text-gray-400 hover:text-gray-600">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -28,7 +28,7 @@
             </button>
         </div>
         <div class="mt-4" id="form-container">
-            {% include 'accounting/vouchers/_receipt_form_container.html' with form=form %}
+            {% include 'accounting/vouchers/_payment_form_container.html' with form=form %}
         </div>
     </div>
 </div>
@@ -47,16 +47,14 @@
                 </tr>
             </thead>
             <tbody id="voucher-table-body">
-                {% for receipt in receipts %}
-                    {% include 'accounting/vouchers/_receipt_row.html' with receipt=receipt %}
+                {% for payment in payments %}
+                    {% include 'accounting/vouchers/_payment_row.html' with payment=payment %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
 function showAddForm() {
     document.getElementById('form-modal').classList.remove('hidden');
@@ -64,6 +62,7 @@ function showAddForm() {
 
 function closeFormModal() {
     document.getElementById('form-modal').classList.add('hidden');
+    // Reset form if needed
     document.querySelector('#form-container form').reset();
 }
 
@@ -75,33 +74,47 @@ window.onclick = function(event) {
     }
 }
 
-// Listen for HTMX events
-document.body.addEventListener('showMessage', function(evt) {
-    const { message, type } = evt.detail;
-    if (type === 'success') {
-        showSuccessMessage(message);
-    } else {
-        showErrorMessage(message);
-    }
-});
-
-document.body.addEventListener('closeModal', function() {
-    closeFormModal();
-});
-
 // Handle successful form submission
 document.addEventListener('htmx:afterSwap', function(event) {
     if (event.detail.target.id === 'voucher-table-body') {
-        // Add highlight effect to new row
+        closeFormModal();
+        // إضافة تأثير للعنصر الجديد
         const newRow = event.detail.target.firstElementChild;
         if (newRow) {
-            newRow.classList.add('bg-green-50');
+            newRow.classList.add('bg-red-50');
             setTimeout(() => {
-                newRow.classList.remove('bg-green-50');
+                newRow.classList.remove('bg-red-50');
                 newRow.classList.add('transition-colors', 'duration-1000');
             }, 100);
         }
     }
 });
+
+// Listen for custom event to close modal and show message
+document.body.addEventListener('paymentAdded', function() {
+    closeFormModal();
+    showSuccessMessage('تم إضافة سند الصرف بنجاح!');
+});
+
+function showSuccessMessage(message) {
+    const messagesContainer = document.getElementById('messages-container');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative shadow-lg';
+    alertDiv.innerHTML = `
+        <span class="block sm:inline font-semibold">${message}</span>
+        <span class="absolute top-0 bottom-0 left-0 px-4 py-3">
+            <svg onclick="this.parentElement.parentElement.remove()" class="fill-current h-6 w-6 text-green-500 cursor-pointer" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <title>إغلاق</title>
+                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+            </svg>
+        </span>
+    `;
+    messagesContainer.appendChild(alertDiv);
+    
+    // إزالة الرسالة تلقائياً بعد 5 ثواني
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
 </script>
 {% endblock %}
