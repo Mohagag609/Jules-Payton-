@@ -4,11 +4,12 @@ Units URLs
 
 from django.urls import path
 from accounting.views import units as views
+from accounting.views.simple_views import simple_units_list
 
 app_name = 'units'
 
 urlpatterns = [
-    path('', views.unit_list_view, name='unit_list'),
+    path('', simple_units_list, name='unit_list'),  # Temporarily use simple view
     path('create/', views.unit_create_view, name='unit_create'),
     path('<int:pk>/', views.unit_detail_view, name='unit_detail'),
     path('<int:pk>/edit/', views.unit_edit_view, name='unit_edit'),

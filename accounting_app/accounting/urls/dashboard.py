@@ -8,9 +8,10 @@ from accounting.views.dashboard import (
     dashboard_export_view,
     dashboard_print_view,
 )
+from accounting.views.simple_views import simple_dashboard
 
 urlpatterns = [
-    path('', dashboard_view, name='dashboard'),
+    path('', simple_dashboard, name='dashboard'),  # Temporarily use simple dashboard
     path('export/', dashboard_export_view, name='dashboard_export'),
     path('print/', dashboard_print_view, name='dashboard_print'),
 ]
