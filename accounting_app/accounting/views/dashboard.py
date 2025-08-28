@@ -147,7 +147,7 @@ def calculate_kpis(from_date=None, to_date=None):
     # Partner statistics
     partners = {
         'total': Partner.objects.count(),
-        'active': Partner.objects.filter(is_active=True).count(),
+        'active': Partner.objects.all().count(),  # All partners are considered active
     }
     
     # Broker commissions
@@ -305,7 +305,7 @@ def get_partner_profits_summary():
     """
     from accounting.models import UnitPartner
     
-    partners = Partner.objects.filter(is_active=True)
+    partners = Partner.objects.all()  # All partners are considered active
     
     summary = []
     for partner in partners:
