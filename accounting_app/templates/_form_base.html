@@ -1,0 +1,86 @@
+{% comment %}
+Base form template
+Usage: {% include '_form_base.html' with form=form form_title="عنوان النموذج" submit_text="حفظ" %}
+{% endcomment %}
+
+<div class="bg-white rounded-lg">
+    <form method="post" 
+          {% if form_action %}action="{{ form_action }}"{% endif %}
+          {% if use_htmx %}
+              hx-post="{{ form_action }}"
+              hx-target="{{ htmx_target|default:'#table-body' }}"
+              hx-swap="{{ htmx_swap|default:'afterbegin' }}"
+          {% endif %}
+          class="space-y-6">
+        
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg" role="alert">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>{{ form.non_field_errors }}</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Form fields grouped by sections -->
+        {% block form_sections %}
+            <!-- معلومات أساسية -->
+            <div class="bg-gray-50 p-6 rounded-lg">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4">
+                    {{ section_title|default:"المعلومات الأساسية" }}
+                </h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for field in form %}
+                        {% if not field.is_hidden %}
+                        <div {% if field.name in wide_fields %}class="md:col-span-2"{% endif %}>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                            </label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="mt-1">
+                                {% for error in field.errors %}
+                                <p class="text-sm text-red-600">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endblock %}
+        
+        <!-- Hidden fields -->
+        {% for field in form %}
+            {% if field.is_hidden %}{{ field }}{% endif %}
+        {% endfor %}
+        
+        <!-- أزرار الإجراءات -->
+        <div class="flex justify-end space-x-4 space-x-reverse border-t pt-6">
+            <button type="button" onclick="closeFormModal()" 
+                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200">
+                <svg class="w-5 h-5 inline-block ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                إلغاء
+            </button>
+            <button type="submit" 
+                    class="px-6 py-2 bg-{{ submit_color|default:'blue' }}-600 text-white rounded-md hover:bg-{{ submit_color|default:'blue' }}-700 focus:outline-none focus:ring-2 focus:ring-{{ submit_color|default:'blue' }}-500 flex items-center transition duration-200">
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                {{ submit_text|default:"حفظ" }}
+            </button>
+        </div>
+    </form>
+</div>

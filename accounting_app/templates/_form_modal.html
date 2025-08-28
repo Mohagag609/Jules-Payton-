@@ -1,0 +1,37 @@
+{% comment %}
+Template for form modals
+Usage: {% include '_form_modal.html' with form_title="عنوان النموذج" form_content=form_html %}
+{% endcomment %}
+
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" id="form-modal">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center pb-3 border-b">
+            <h3 class="text-xl font-bold text-gray-900">{{ form_title }}</h3>
+            <button onclick="closeFormModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="mt-4" id="form-modal-body">
+            {{ form_content|safe }}
+        </div>
+    </div>
+</div>
+
+<script>
+function closeFormModal() {
+    document.getElementById('form-modal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    let modal = document.getElementById('form-modal');
+    if (event.target == modal) {
+        closeFormModal();
+    }
+}
+</script>

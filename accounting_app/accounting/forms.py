@@ -1,4 +1,5 @@
 from django import forms
+from django.forms.widgets import TextInput, Select, NumberInput, DateInput, Textarea
 from datetime import date
 from .models import (
     Partner, Safe, Customer, Supplier, Unit, Project, Item, StockMove,
@@ -118,3 +119,11 @@ class PaymentVoucherForm(forms.ModelForm):
             field.widget.attrs.update({
                 'class': 'mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm'
             })
+        
+        # Add empty choice for select fields
+        if 'safe' in self.fields:
+            self.fields['safe'].empty_label = "اختر الخزنة"
+        if 'supplier' in self.fields:
+            self.fields['supplier'].empty_label = "اختر المورد (اختياري)"
+        if 'project' in self.fields:
+            self.fields['project'].empty_label = "اختر المشروع (اختياري)"

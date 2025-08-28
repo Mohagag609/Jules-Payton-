@@ -5,10 +5,31 @@
 {% block content %}
 <div class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    <button 
+        onclick="showAddForm()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 flex items-center">
+        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        إضافة عميل جديد
+    </button>
 </div>
 
-<div id="form-container" class="mb-6">
-    {% include 'accounting/customers/_form_container.html' with form=form %}
+<!-- Modal Container -->
+<div id="form-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center pb-3 border-b">
+            <h3 class="text-xl font-bold text-gray-900">إضافة عميل جديد</h3>
+            <button onclick="closeFormModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="mt-4" id="form-container">
+            {% include 'accounting/customers/_form_container.html' with form=form %}
+        </div>
+    </div>
 </div>
 
 <div class="bg-white p-6 rounded-2xl shadow-sm">
@@ -31,4 +52,56 @@
         </table>
     </div>
 </div>
+
+<script>
+function showAddForm() {
+    document.getElementById('form-modal').classList.remove('hidden');
+}
+
+function closeFormModal() {
+    document.getElementById('form-modal').classList.add('hidden');
+    // Reset form if needed
+    document.querySelector('#form-container form').reset();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    let modal = document.getElementById('form-modal');
+    if (event.target == modal) {
+        closeFormModal();
+    }
+}
+
+// Handle successful form submission
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'customer-table-body') {
+        closeFormModal();
+        // إضافة تأثير للعنصر الجديد
+        const newRow = event.detail.target.firstElementChild;
+        if (newRow) {
+            newRow.classList.add('bg-blue-50');
+            setTimeout(() => {
+                newRow.classList.remove('bg-blue-50');
+                newRow.classList.add('transition-colors', 'duration-1000');
+            }, 100);
+        }
+    }
+});
+
+// Listen for custom event
+document.body.addEventListener('customerAdded', function() {
+    closeFormModal();
+    showSuccessMessage('تم إضافة العميل بنجاح!');
+});
+
+// Listen for toast events
+document.body.addEventListener('showToast', function(evt) {
+    const { message, type } = evt.detail;
+    if (type === 'success') {
+        showSuccessMessage(message);
+    } else {
+        showErrorMessage(message);
+    }
+});
+</script>
 {% endblock %}

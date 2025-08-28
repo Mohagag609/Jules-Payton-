@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
+    {% block action_buttons %}
+    <button 
+        onclick="showAddForm()"
+        class="bg-{{ button_color|default:'blue' }}-600 hover:bg-{{ button_color|default:'blue' }}-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition duration-300 flex items-center">
+        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        {{ add_button_text|default:"إضافة جديد" }}
+    </button>
+    {% endblock %}
+</div>
+
+<!-- Modal Container -->
+<div id="form-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-10 mx-auto p-5 border w-full max-w-{{ modal_size|default:'2xl' }} shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center pb-3 border-b">
+            <h3 class="text-xl font-bold text-gray-900">{{ modal_title|default:add_button_text|default:"إضافة جديد" }}</h3>
+            <button onclick="closeFormModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="mt-4" id="form-container">
+            {% block form_content %}
+                {% include form_template with form=form %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Table Container -->
+<div class="bg-white p-6 rounded-2xl shadow-sm">
+    {% block table_content %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    {% block table_headers %}{% endblock %}
+                </tr>
+            </thead>
+            <tbody id="{{ table_id|default:'table-body' }}">
+                {% block table_rows %}{% endblock %}
+            </tbody>
+        </table>
+        
+        {% if not objects %}
+        <div class="text-center py-8 text-gray-500">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <p class="mt-2">لا توجد بيانات للعرض</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endblock %}
+</div>
+
+<script>
+function showAddForm() {
+    document.getElementById('form-modal').classList.remove('hidden');
+}
+
+function closeFormModal() {
+    document.getElementById('form-modal').classList.add('hidden');
+    // Reset form if needed
+    const form = document.querySelector('#form-container form');
+    if (form) form.reset();
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    let modal = document.getElementById('form-modal');
+    if (event.target == modal) {
+        closeFormModal();
+    }
+}
+
+// Handle successful form submission
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === '{{ table_id|default:"table-body" }}') {
+        closeFormModal();
+        // إضافة تأثير للعنصر الجديد
+        const newRow = event.detail.target.firstElementChild;
+        if (newRow) {
+            newRow.classList.add('bg-{{ highlight_color|default:"green" }}-50');
+            setTimeout(() => {
+                newRow.classList.remove('bg-{{ highlight_color|default:"green" }}-50');
+                newRow.classList.add('transition-colors', 'duration-1000');
+            }, 100);
+        }
+    }
+});
+
+// Listen for custom events
+document.body.addEventListener('{{ htmx_event|default:"objectAdded" }}', function() {
+    closeFormModal();
+    showSuccessMessage('{{ success_message|default:"تمت الإضافة بنجاح!" }}');
+});
+
+// Handle form errors
+document.addEventListener('htmx:responseError', function(event) {
+    console.error('HTMX Error:', event.detail);
+    showErrorMessage('حدث خطأ في العملية. يرجى المحاولة مرة أخرى.');
+});
+
+{% block extra_scripts %}{% endblock %}
+</script>
+{% endblock %}

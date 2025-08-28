@@ -5,7 +5,8 @@
             hx-target="#supplier-row-{{ supplier.pk }}"
         {% else %}
             hx-post="{% url 'accounting:suppliers:list' %}"
-            hx-target="#form-container"
+            hx-target="#supplier-table-body"
+            hx-swap="afterbegin"
         {% endif %}
         hx-swap="outerHTML"
         class="space-y-4">

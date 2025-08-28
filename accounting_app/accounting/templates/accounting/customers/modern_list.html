@@ -1,0 +1,283 @@
+{% extends "modern_base.html" %}
+{% load humanize %}
+
+{% block title %}العملاء - نظام المحاسبة الذكي{% endblock %}
+{% block page_title %}العملاء{% endblock %}
+
+{% block content %}
+<!-- Search and Actions -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <!-- Search Box -->
+        <div class="relative flex-1 max-w-md">
+            <input type="text" 
+                   placeholder="ابحث عن عميل بالاسم أو رقم الهاتف..." 
+                   class="form-input pr-12 w-full"
+                   id="search-customers">
+            <i class="ri-search-line absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex items-center gap-3">
+            <!-- Import Button -->
+            <button class="btn btn-ghost">
+                <i class="ri-upload-line"></i>
+                <span>استيراد</span>
+            </button>
+            
+            <!-- Add Button -->
+            <button onclick="showModal('customer-modal')" class="btn btn-primary">
+                <i class="ri-user-add-line"></i>
+                <span>عميل جديد</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Customers Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="customers-grid">
+    {% for customer in customers %}
+    <div class="card p-6 hover:shadow-xl customer-card animate-fadeIn" 
+         style="animation-delay: {{ forloop.counter0|floatformat:1 }}00ms"
+         data-name="{{ customer.name|lower }}"
+         data-phone="{{ customer.phone|default:'' }}">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {{ customer.name|first|upper }}
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">{{ customer.name }}</h3>
+                    <p class="text-sm text-gray-500">عميل منذ {{ customer.created_at|timesince }}</p>
+                </div>
+            </div>
+            <div class="relative">
+                <button class="text-gray-400 hover:text-gray-600">
+                    <i class="ri-more-2-line text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="space-y-3">
+            <!-- Phone -->
+            {% if customer.phone %}
+            <div class="flex items-center gap-3 text-gray-600">
+                <i class="ri-phone-line text-indigo-500"></i>
+                <a href="tel:{{ customer.phone }}" class="hover:text-indigo-600">{{ customer.phone }}</a>
+            </div>
+            {% endif %}
+            
+            <!-- Email -->
+            {% if customer.email %}
+            <div class="flex items-center gap-3 text-gray-600">
+                <i class="ri-mail-line text-indigo-500"></i>
+                <a href="mailto:{{ customer.email }}" class="hover:text-indigo-600 text-sm">{{ customer.email }}</a>
+            </div>
+            {% endif %}
+            
+            <!-- Address -->
+            {% if customer.address %}
+            <div class="flex items-start gap-3 text-gray-600">
+                <i class="ri-map-pin-line text-indigo-500 mt-1"></i>
+                <p class="text-sm">{{ customer.address }}</p>
+            </div>
+            {% endif %}
+            
+            <!-- Stats -->
+            <div class="pt-4 mt-4 border-t border-gray-100">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-500">إجمالي المعاملات</p>
+                        <p class="text-lg font-bold text-green-600">{{ customer.total_transactions|default:0|floatformat:0|intcomma }} ج.م</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500">آخر معاملة</p>
+                        <p class="text-sm font-semibold text-gray-700">
+                            {% if customer.last_transaction %}
+                                {{ customer.last_transaction|timesince }}
+                            {% else %}
+                                لا توجد
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="flex items-center gap-2 mt-6">
+            <button class="flex-1 btn btn-ghost text-sm">
+                <i class="ri-eye-line"></i>
+                عرض
+            </button>
+            <button class="flex-1 btn btn-ghost text-sm">
+                <i class="ri-edit-line"></i>
+                تعديل
+            </button>
+            <button class="flex-1 btn btn-ghost text-sm text-red-600 hover:bg-red-50">
+                <i class="ri-delete-bin-line"></i>
+                حذف
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full">
+        <div class="card p-16 text-center">
+            <i class="ri-user-line text-6xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">لا يوجد عملاء حتى الآن</h3>
+            <p class="text-gray-500 mb-6">ابدأ بإضافة أول عميل للنظام</p>
+            <button onclick="showModal('customer-modal')" class="btn btn-primary mx-auto">
+                <i class="ri-user-add-line"></i>
+                إضافة أول عميل
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Customer Modal -->
+<div id="customer-modal" class="modal">
+    <div class="modal-content max-w-2xl">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-bold text-gray-800">عميل جديد</h3>
+                <button onclick="closeModal('customer-modal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <form hx-post="{% url 'accounting:customers:customer_list' %}"
+              hx-target="#customers-grid"
+              hx-swap="afterbegin"
+              class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <!-- Basic Info -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">المعلومات الأساسية</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Name -->
+                        <div class="md:col-span-2">
+                            <label class="form-label">اسم العميل <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" required class="form-input" 
+                                   placeholder="أدخل اسم العميل الكامل">
+                        </div>
+                        
+                        <!-- Phone -->
+                        <div>
+                            <label class="form-label">رقم الهاتف</label>
+                            <div class="relative">
+                                <input type="tel" name="phone" class="form-input pr-12" 
+                                       placeholder="01234567890">
+                                <i class="ri-phone-line absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div>
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <div class="relative">
+                                <input type="email" name="email" class="form-input pr-12" 
+                                       placeholder="example@email.com">
+                                <i class="ri-mail-line absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Address Info -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">معلومات العنوان</h4>
+                    
+                    <div class="space-y-4">
+                        <!-- Address -->
+                        <div>
+                            <label class="form-label">العنوان</label>
+                            <textarea name="address" rows="3" class="form-input" 
+                                      placeholder="أدخل عنوان العميل بالتفصيل"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Info -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">معلومات إضافية</h4>
+                    
+                    <div class="space-y-4">
+                        <!-- Notes -->
+                        <div>
+                            <label class="form-label">ملاحظات</label>
+                            <textarea name="notes" rows="3" class="form-input" 
+                                      placeholder="أي ملاحظات إضافية عن العميل"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button type="button" onclick="closeModal('customer-modal')" class="btn btn-ghost">
+                    إلغاء
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="ri-save-line"></i>
+                    حفظ العميل
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Live Search
+const searchInput = document.getElementById('search-customers');
+const customerCards = document.querySelectorAll('.customer-card');
+
+searchInput.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    
+    customerCards.forEach(card => {
+        const name = card.dataset.name;
+        const phone = card.dataset.phone;
+        
+        if (name.includes(searchTerm) || phone.includes(searchTerm)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Handle form submission
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'customers-grid') {
+        // Close modal
+        closeModal('customer-modal');
+        
+        // Show success message
+        showSuccessMessage('تم إضافة العميل بنجاح!');
+        
+        // Highlight new card
+        const newCard = event.detail.target.firstElementChild;
+        if (newCard) {
+            newCard.style.transform = 'scale(0.95)';
+            newCard.style.opacity = '0';
+            setTimeout(() => {
+                newCard.style.transform = 'scale(1)';
+                newCard.style.opacity = '1';
+                newCard.style.transition = 'all 0.3s ease';
+            }, 10);
+        }
+        
+        // Reset form
+        event.detail.target.closest('form')?.reset();
+    }
+});
+</script>
+{% endblock %}

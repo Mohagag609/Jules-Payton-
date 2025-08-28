@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}اختبار التنسيقات{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-8">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">اختبار التنسيقات</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- بطاقة خضراء -->
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            <strong class="font-bold">نجاح!</strong>
+            <span class="block sm:inline">التنسيقات تعمل بشكل صحيح.</span>
+        </div>
+        
+        <!-- بطاقة زرقاء -->
+        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded">
+            <strong class="font-bold">معلومة</strong>
+            <span class="block sm:inline">هذه بطاقة معلومات.</span>
+        </div>
+        
+        <!-- بطاقة حمراء -->
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <strong class="font-bold">تحذير!</strong>
+            <span class="block sm:inline">هذه بطاقة تحذير.</span>
+        </div>
+    </div>
+    
+    <div class="mt-8">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            زر أزرق
+        </button>
+        <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2">
+            زر أخضر
+        </button>
+        <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2">
+            زر أحمر
+        </button>
+    </div>
+    
+    <div class="mt-8 bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-2xl font-semibold mb-4">جدول تجريبي</h2>
+        <table class="min-w-full">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="px-4 py-2 text-right">الاسم</th>
+                    <th class="px-4 py-2 text-right">الوصف</th>
+                    <th class="px-4 py-2 text-right">الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b">
+                    <td class="px-4 py-2">عنصر 1</td>
+                    <td class="px-4 py-2">وصف العنصر الأول</td>
+                    <td class="px-4 py-2"><span class="text-green-600">نشط</span></td>
+                </tr>
+                <tr class="border-b">
+                    <td class="px-4 py-2">عنصر 2</td>
+                    <td class="px-4 py-2">وصف العنصر الثاني</td>
+                    <td class="px-4 py-2"><span class="text-red-600">غير نشط</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

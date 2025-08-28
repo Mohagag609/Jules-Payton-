@@ -1,0 +1,318 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}نظام المحاسبة الذكي{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link href="{% static 'css/tailwind.css' %}" rel="stylesheet">
+    <link href="{% static 'css/modern.css' %}" rel="stylesheet">
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Cairo', 'Inter', sans-serif;
+        }
+        
+        /* Smooth Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-400);
+            border-radius: 6px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-500);
+        }
+    </style>
+</head>
+<body class="bg-gray-50" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+        <div class="p-6 border-b border-gray-700">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <i class="ri-bar-chart-box-line text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">نظام المحاسبة</h1>
+                    <p class="text-xs text-gray-400">الإصدار 2.0</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="p-4">
+            <ul class="space-y-2">
+                <li>
+                    <a href="{% url 'accounting:dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="ri-dashboard-line text-xl"></i>
+                        <span>لوحة التحكم</span>
+                    </a>
+                </li>
+                
+                <li class="pt-4">
+                    <p class="text-xs text-gray-500 px-4 mb-2">السندات</p>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:vouchers:receipt_voucher_list' %}" class="sidebar-item {% if 'receipt' in request.path %}active{% endif %}">
+                        <i class="ri-money-dollar-circle-line text-xl text-green-400"></i>
+                        <span>سندات القبض</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:vouchers:payment_voucher_list' %}" class="sidebar-item {% if 'payment' in request.path %}active{% endif %}">
+                        <i class="ri-money-dollar-box-line text-xl text-red-400"></i>
+                        <span>سندات الصرف</span>
+                    </a>
+                </li>
+                
+                <li class="pt-4">
+                    <p class="text-xs text-gray-500 px-4 mb-2">البيانات الأساسية</p>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:customers:customer_list' %}" class="sidebar-item {% if 'customer' in request.path %}active{% endif %}">
+                        <i class="ri-user-3-line text-xl text-blue-400"></i>
+                        <span>العملاء</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:suppliers:supplier_list' %}" class="sidebar-item {% if 'supplier' in request.path %}active{% endif %}">
+                        <i class="ri-truck-line text-xl text-purple-400"></i>
+                        <span>الموردين</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:projects_store:project_list' %}" class="sidebar-item {% if 'project' in request.path %}active{% endif %}">
+                        <i class="ri-briefcase-line text-xl text-orange-400"></i>
+                        <span>المشاريع</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:partners:partner_list' %}" class="sidebar-item {% if 'partner' in request.path %}active{% endif %}">
+                        <i class="ri-team-line text-xl text-indigo-400"></i>
+                        <span>الشركاء</span>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:safes:safe_list' %}" class="sidebar-item {% if 'safe' in request.path %}active{% endif %}">
+                        <i class="ri-safe-2-line text-xl text-yellow-400"></i>
+                        <span>الخزائن</span>
+                    </a>
+                </li>
+                
+                <li class="pt-4">
+                    <p class="text-xs text-gray-500 px-4 mb-2">التقارير</p>
+                </li>
+                
+                <li>
+                    <a href="{% url 'accounting:reports' %}" class="sidebar-item {% if 'reports' in request.path %}active{% endif %}">
+                        <i class="ri-file-chart-line text-xl text-teal-400"></i>
+                        <span>التقارير</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center">
+                    <i class="ri-user-line text-white"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm font-semibold">{{ user.get_full_name|default:user.username }}</p>
+                    <p class="text-xs text-gray-400">مدير النظام</p>
+                </div>
+                <a href="{% url 'admin:logout' %}" class="text-gray-400 hover:text-white">
+                    <i class="ri-logout-box-line text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="mr-[280px] min-h-screen transition-all duration-300">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm sticky top-0 z-30">
+            <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center gap-4">
+                    <button id="sidebar-toggle" class="hidden lg:hidden text-gray-600 hover:text-gray-900">
+                        <i class="ri-menu-line text-2xl"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800">{% block page_title %}{% endblock %}</h2>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <!-- Search -->
+                    <div class="relative">
+                        <input type="text" placeholder="بحث..." class="form-input pr-10 w-64">
+                        <i class="ri-search-line absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative text-gray-600 hover:text-gray-900">
+                        <i class="ri-notification-3-line text-2xl"></i>
+                        <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    </button>
+                    
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="text-gray-600 hover:text-gray-900">
+                        <i class="ri-sun-line text-2xl" id="theme-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <div class="p-6">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-20 right-6 z-50 space-y-2"></div>
+    
+    <!-- Scripts -->
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+        
+        // Check saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.className = 'ri-moon-line text-2xl';
+            } else {
+                themeIcon.className = 'ri-sun-line text-2xl';
+            }
+        }
+        
+        // Sidebar Toggle
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        sidebarToggle?.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+        
+        // Toast Functions
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} animate-slideInUp`;
+            
+            const icon = type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line';
+            const iconColor = type === 'success' ? 'text-green-500' : 'text-red-500';
+            
+            toast.innerHTML = `
+                <i class="${icon} ${iconColor} text-xl"></i>
+                <span class="flex-1">${message}</span>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                    <i class="ri-close-line"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+        
+        // Global Functions
+        window.showSuccessMessage = (message) => showToast(message, 'success');
+        window.showErrorMessage = (message) => showToast(message, 'error');
+        
+        // HTMX Events
+        document.body.addEventListener('showMessage', (evt) => {
+            const { message, type } = evt.detail;
+            showToast(message, type);
+        });
+        
+        document.body.addEventListener('closeModal', () => {
+            const modals = document.querySelectorAll('.modal.show');
+            modals.forEach(modal => {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Modal Functions
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+        
+        // Close modal on outside click
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                closeModal(e.target.id);
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

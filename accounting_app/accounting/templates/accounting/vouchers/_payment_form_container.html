@@ -1,34 +1,53 @@
-<div id="payment-form-container" class="bg-white rounded-2xl shadow-xl w-full mx-auto p-6">
+<div id="payment-form-container" class="bg-white rounded-lg">
     <form
         hx-post="{% url 'accounting:vouchers:payment_list' %}"
-        hx-target="#form-container"
-        hx-swap="outerHTML"
-        class="space-y-4">
+        hx-target="#voucher-table-body"
+        hx-swap="afterbegin"
+        class="space-y-6">
 
         {% csrf_token %}
 
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">
-            إضافة سند صرف
-        </h2>
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
 
-        <div class="space-y-2">
-            {% for field in form %}
-                <div>
-                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
+        <!-- معلومات السند -->
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h4 class="text-lg font-semibold text-gray-800 mb-4">معلومات سند الصرف</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for field in form %}
+                    <div {% if field.name == 'description' %}class="md:col-span-2"{% endif %}>
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
                         <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
-                    {% endif %}
-                    {% for error in field.errors %}
-                        <p class="text-red-500 text-xs italic">{{ error }}</p>
-                    {% endfor %}
-                </div>
-            {% endfor %}
+                        {% endif %}
+                        {% if field.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
         </div>
 
-        <div class="flex justify-end space-x-4 space-x-reverse pt-4">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
-                إضافة
+        <!-- أزرار الإجراءات -->
+        <div class="flex justify-end space-x-4 space-x-reverse border-t pt-6">
+            <button type="button" onclick="closeFormModal()" 
+                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                إلغاء
+            </button>
+            <button type="submit" 
+                    class="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center">
+                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                إضافة سند الصرف
             </button>
         </div>
     </form>
