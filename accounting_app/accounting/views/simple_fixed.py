@@ -7,11 +7,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Sum, Count
+import logging
+import traceback
 
 from accounting.models import (
     Unit, Contract, Customer, Partner, Installment,
     Safe, ReceiptVoucher, PaymentVoucher
 )
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
