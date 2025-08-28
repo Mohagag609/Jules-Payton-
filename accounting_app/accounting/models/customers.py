@@ -31,6 +31,11 @@ class Customer(models.Model):
         default=True,
         verbose_name="نشط"
     )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاريخ الإنشاء",
+        null=True  # مؤقتاً للسماح بالقيم الفارغة
+    )
 
     class Meta:
         verbose_name = "عميل"
