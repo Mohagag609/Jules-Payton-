@@ -20,6 +20,10 @@ class UndoRedoMiddleware(MiddlewareMixin):
         if not LEGACY_UNDO_REDO_ENABLED:
             return
             
+        # Skip if no session available (anonymous users)
+        if not hasattr(request, 'session'):
+            return
+            
         if 'undo_stack' not in request.session:
             request.session['undo_stack'] = []
             request.session['undo_index'] = -1
@@ -27,6 +31,10 @@ class UndoRedoMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         """Save state after successful POST/PUT/DELETE requests."""
         if not LEGACY_UNDO_REDO_ENABLED:
+            return response
+            
+        # Skip if no session available
+        if not hasattr(request, 'session'):
             return response
             
         # Only track state-changing methods

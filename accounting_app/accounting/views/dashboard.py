@@ -25,18 +25,30 @@ def dashboard_view(request):
     """
     Main dashboard with KPIs and charts.
     """
-    # Date filters
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
-    
-    # Calculate KPIs
-    kpis = calculate_kpis(from_date, to_date)
-    
-    # Get upcoming installments
-    upcoming_installments = get_upcoming_installments()
-    
-    # Get recent transactions
-    recent_transactions = get_recent_transactions()
+    try:
+        # Date filters
+        from_date = request.GET.get('from_date')
+        to_date = request.GET.get('to_date')
+        
+        # Calculate KPIs
+        kpis = calculate_kpis(from_date, to_date)
+        
+        # Get upcoming installments
+        upcoming_installments = get_upcoming_installments()
+        
+        # Get recent transactions
+        recent_transactions = get_recent_transactions()
+    except Exception as e:
+        # Log error and return safe defaults
+        print(f"Dashboard error: {str(e)}")
+        kpis = {
+            'financial': {'total_revenue': 0, 'total_expenses': 0, 'net_profit': 0, 'pending_payments': 0},
+            'units': {'total': 0, 'available': 0, 'sold': 0, 'reserved': 0, 'returned': 0},
+            'contracts': {'total': 0, 'active': 0, 'completed': 0, 'installments_total': 0},
+            'customers': {'total': 0, 'active': 0, 'new_this_month': 0}
+        }
+        upcoming_installments = []
+        recent_transactions = []
     
     # Unit status chart data
     unit_chart_data = {
