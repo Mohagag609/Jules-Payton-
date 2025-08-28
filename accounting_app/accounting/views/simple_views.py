@@ -193,9 +193,10 @@ def simple_dashboard(request):
 @login_required
 def simple_units_list(request):
     """Simple units list"""
-    units = Unit.objects.all()
-    
-    html = """
+    try:
+        units = Unit.objects.all()
+        
+        html = """
     <!DOCTYPE html>
     <html dir="rtl">
     <head>
@@ -246,8 +247,8 @@ def simple_units_list(request):
                 <td>{unit.code}</td>
                 <td>{unit.name}</td>
                 <td>{unit.building_no or '-'}</td>
-                <td>{unit.get_type_display() if hasattr(unit, 'get_type_display') else unit.type}</td>
-                <td><span class="badge bg-{status_class}">{unit.get_status_display() if hasattr(unit, 'get_status_display') else unit.status}</span></td>
+                <td>{unit.type}</td>
+                <td><span class="badge bg-{status_class}">{unit.status}</span></td>
                 <td>{unit.price_total:,.2f} ج.م</td>
             </tr>
         """
@@ -394,7 +395,7 @@ def simple_contracts_list(request):
                 <td>{contract.unit.name if contract.unit else '-'}</td>
                 <td>{contract.unit_value:,.2f} ج.م</td>
                 <td>{contract.amount_paid:,.2f} ج.م</td>
-                <td>{contract.remaining_amount:,.2f} ج.م</td>
+                <td>{(contract.unit_value - contract.amount_paid):,.2f} ج.م</td>
             </tr>
         """
     

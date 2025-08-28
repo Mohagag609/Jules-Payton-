@@ -4,7 +4,7 @@ Units URLs
 
 from django.urls import path
 from accounting.views import units as views
-from accounting.views.simple_views import simple_units_list
+from accounting.views.simple_fixed import simple_units_list
 
 app_name = 'units'
 

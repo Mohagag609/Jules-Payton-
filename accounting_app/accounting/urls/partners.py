@@ -1,6 +1,6 @@
 from django.urls import path
 from accounting.views import partners as views
-from accounting.views.simple_views import simple_partners_list
+from accounting.views.simple_fixed import simple_partners_list
 
 app_name = 'partners'
 

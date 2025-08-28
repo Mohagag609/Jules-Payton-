@@ -1,6 +1,6 @@
 from django.urls import path
 from accounting.views import safes as views
-from accounting.views.simple_views import simple_safes_list
+from accounting.views.simple_fixed import simple_safes_list
 
 app_name = 'safes'
 
