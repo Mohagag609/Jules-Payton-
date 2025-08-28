@@ -40,7 +40,9 @@ def dashboard_view(request):
         recent_transactions = get_recent_transactions()
     except Exception as e:
         # Log error and return safe defaults
+        import traceback
         print(f"Dashboard error: {str(e)}")
+        print(f"Traceback: {traceback.format_exc()}")
         kpis = {
             'financial': {'total_revenue': 0, 'total_expenses': 0, 'net_profit': 0, 'pending_payments': 0},
             'units': {'total': 0, 'available': 0, 'sold': 0, 'reserved': 0, 'returned': 0},
