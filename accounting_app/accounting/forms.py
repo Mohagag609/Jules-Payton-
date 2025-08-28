@@ -1,4 +1,5 @@
 from django import forms
+from django.forms.widgets import TextInput, Select, NumberInput, DateInput, Textarea
 from datetime import date
 from .models import (
     Partner, Safe, Customer, Supplier, Unit, Project, Item, StockMove,

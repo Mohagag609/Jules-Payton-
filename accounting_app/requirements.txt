@@ -5,3 +5,4 @@ dj-database-url
 whitenoise
 djangorestframework
 python-dateutil
+django-widget-tweaks
