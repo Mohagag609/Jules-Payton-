@@ -5,33 +5,38 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ---------------------------------
-# الأمن والديباج
-# ---------------------------------
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key-change-me")
 
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = [
-    "jules-payton.onrender.com",    # الدومين الأساسي
-    ".onrender.com",                # أي دومين تابع ل Render
-    "www.jules-payton.onrender.com",
-    "localhost",
-    "127.0.0.1"
-]
+ALLOWED_HOSTS = []
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://jules-payton.onrender.com",
-    "https://*.onrender.com",
-    "https://www.jules-payton.onrender.com"
-]
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# Optional: Add other hosts for local development
+if not RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1"])
+
+
+CSRF_TRUSTED_ORIGINS = []
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 
-# ---------------------------------
-# التطبيقات
-# ---------------------------------
+
+# Application definition
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,11 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
     # Third-party apps
     'rest_framework',
 
     # Local apps
-'accounting.apps.AccountingConfig',
+    'accounting',
 ]
 
 MIDDLEWARE = [
@@ -78,9 +84,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# ---------------------------------
-# قاعدة البيانات Neon
-# ---------------------------------
+
+# Database
+# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+
 DATABASES = {
     "default": dj_database_url.config(
         default="postgresql://neondb_owner:npg_WPezUmp8otb0@ep-wild-paper-adkwv7dc-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",
@@ -89,34 +96,47 @@ DATABASES = {
     )
 }
 
-# ---------------------------------
-# كلمات المرور
-# ---------------------------------
+
+# Password validation
+# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
 ]
 
-# ---------------------------------
-# اللغة والتوقيت
-# ---------------------------------
+
+# Internationalization
+# https://docs.djangoproject.com/en/5.0/topics/i18n/
+
 LANGUAGE_CODE = 'ar'
 TIME_ZONE = 'Africa/Cairo'
 USE_I18N = True
 USE_TZ = True
 
-# ---------------------------------
-# الملفات الثابتة (Static files)
-# ---------------------------------
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.0/howto/static-files/
+
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# ---------------------------------
-# إعدادات إضافية
-# ---------------------------------
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 LOGIN_URL = '/admin/login/'
