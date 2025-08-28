@@ -1,5 +1,8 @@
 from django.urls import path, include
-from accounting.views import dashboard
+from accounting.views.dashboard import (
+    undo_action, redo_action, update_theme, 
+    global_search, lock_app, unlock_app
+)
 
 app_name = 'accounting'
 
@@ -34,10 +37,10 @@ urlpatterns = [
     path('settings/', include('accounting.urls.settings')),
     
     # API Endpoints
-    path('api/undo/', dashboard.undo_action, name='api_undo_action'),
-    path('api/redo/', dashboard.redo_action, name='api_redo_action'),
-    path('api/theme/', dashboard.update_theme, name='api_update_theme'),
-    path('api/search/', dashboard.global_search, name='api_global_search'),
-    path('api/lock/', dashboard.lock_app, name='lock_app'),
-    path('api/unlock/', dashboard.unlock_app, name='unlock_app'),
+    path('api/undo/', undo_action, name='api_undo_action'),
+    path('api/redo/', redo_action, name='api_redo_action'),
+    path('api/theme/', update_theme, name='api_update_theme'),
+    path('api/search/', global_search, name='api_global_search'),
+    path('api/lock/', lock_app, name='api_lock_app'),
+    path('api/unlock/', unlock_app, name='api_unlock_app'),
 ]
