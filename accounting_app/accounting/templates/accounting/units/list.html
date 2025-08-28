@@ -1,35 +1,535 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
 
-{% block title %}{{ page_title }}{% endblock %}
+{% block title %}إدارة الوحدات - نظام إدارة العقارات الفاخر{% endblock %}
+
+{% block page_title %}إدارة الوحدات العقارية{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'dashboard' %}">الرئيسية</a>
+<i class="bi bi-chevron-left mx-2"></i>
+<span>الوحدات</span>
+{% endblock %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">{{ page_title }}</h1>
-</div>
-
-<div id="form-container" class="mb-6">
-    {% include 'accounting/units/_form_container.html' with form=form %}
-</div>
-
-<div class="bg-white p-6 rounded-2xl shadow-sm">
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm text-right text-gray-500">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                <tr>
-                    <th scope="col" class="px-6 py-3">الكود</th>
-                    <th scope="col" class="px-6 py-3">الاسم/الوصف</th>
-                    <th scope="col" class="px-6 py-3">النوع</th>
-                    <th scope="col" class="px-6 py-3">السعر</th>
-                    <th scope="col" class="px-6 py-3">الحالة</th>
-                    <th scope="col" class="px-6 py-3 text-center">أدوات</th>
-                </tr>
-            </thead>
-            <tbody id="unit-table-body">
-                {% for unit in units %}
-                    {% include 'accounting/units/_row.html' with unit=unit %}
-                {% endfor %}
-            </tbody>
-        </table>
+<!-- Action Bar -->
+<div class="luxury-card mb-4 fade-in">
+    <div class="action-bar">
+        <div class="action-bar-right">
+            <h2 class="mb-0">
+                <i class="bi bi-building"></i>
+                الوحدات العقارية
+                <span class="badge-luxury badge-primary">{{ units.count }} وحدة</span>
+            </h2>
+        </div>
+        <div class="action-bar-left">
+            <button class="btn-luxury btn-gold" data-shortcut="new" 
+                    hx-get="{% url 'unit_create' %}"
+                    hx-target="#modal-body"
+                    hx-trigger="click"
+                    onclick="openModal('إضافة وحدة جديدة')">
+                <i class="bi bi-plus-lg"></i> وحدة جديدة
+            </button>
+            <button class="btn-luxury" onclick="importUnits()">
+                <i class="bi bi-cloud-upload"></i> استيراد
+            </button>
+            <button class="btn-luxury btn-secondary" onclick="exportUnits()">
+                <i class="bi bi-download"></i> تصدير
+            </button>
+        </div>
     </div>
 </div>
+
+<!-- Filters -->
+<div class="luxury-card mb-4 slide-up">
+    <form method="get" class="filters-form">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="search" name="search" class="form-control form-control-luxury" 
+                           placeholder="بحث بالكود، الاسم، أو رقم المبنى..." 
+                           value="{{ search }}"
+                           onchange="this.form.submit()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="type" class="form-select form-select-luxury" onchange="this.form.submit()">
+                    <option value="">جميع الأنواع</option>
+                    {% for value, label in unit_types %}
+                    <option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-luxury" onchange="this.form.submit()">
+                    <option value="">جميع الحالات</option>
+                    {% for value, label in unit_statuses %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <a href="{% url 'unit_list' %}" class="btn-luxury btn-outline w-100">
+                    <i class="bi bi-x-circle"></i> مسح الفلاتر
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Units Grid -->
+<div class="row g-4">
+    {% for unit in units %}
+    <div class="col-xl-4 col-lg-6 fade-in" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+        <div class="unit-card luxury-card h-100">
+            <!-- Status Badge -->
+            <div class="unit-status-badge badge-{{ unit.status }}">
+                {% if unit.status == 'available' %}
+                    <i class="bi bi-check-circle"></i> متاحة
+                {% elif unit.status == 'sold' %}
+                    <i class="bi bi-bag-check"></i> مباعة
+                {% elif unit.status == 'reserved' %}
+                    <i class="bi bi-bookmark"></i> محجوزة
+                {% else %}
+                    <i class="bi bi-arrow-return-right"></i> مرتجعة
+                {% endif %}
+            </div>
+            
+            <!-- Unit Header -->
+            <div class="unit-header">
+                <div class="unit-icon">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="unit-title">
+                    <h3>{{ unit.name }}</h3>
+                    <p class="unit-code">{{ unit.code }}</p>
+                </div>
+            </div>
+            
+            <!-- Unit Details -->
+            <div class="unit-details">
+                <div class="detail-item">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>المبنى {{ unit.building_no|default:"-" }} - الدور {{ unit.floor|default:"-" }}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="bi bi-house"></i>
+                    <span>{{ unit.get_type_display }}</span>
+                </div>
+                {% if unit.area %}
+                <div class="detail-item">
+                    <i class="bi bi-rulers"></i>
+                    <span>{{ unit.area }} م²</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Price Section -->
+            <div class="unit-price">
+                <div class="price-label">السعر</div>
+                <div class="price-value">{{ unit.price_total|floatformat:0|intcomma }} ج.م</div>
+                {% if unit.status == 'sold' and unit.remaining > 0 %}
+                <div class="price-remaining">
+                    المتبقي: <span class="text-warning">{{ unit.remaining|floatformat:0|intcomma }} ج.م</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Partners Section -->
+            {% if unit.partners_list %}
+            <div class="unit-partners">
+                <div class="partners-label">
+                    <i class="bi bi-people"></i> الشركاء
+                </div>
+                <div class="partners-list">
+                    {% for partner in unit.partners_list %}
+                    <span class="partner-chip">
+                        {{ partner.partner.name }} ({{ partner.percent }}%)
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="unit-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                لم يتم تحديد شركاء لهذه الوحدة
+            </div>
+            {% endif %}
+            
+            <!-- Actions -->
+            <div class="unit-actions">
+                <a href="{% url 'unit_detail' unit.id %}" class="btn-luxury btn-sm">
+                    <i class="bi bi-eye"></i> التفاصيل
+                </a>
+                {% if unit.status == 'available' %}
+                <button class="btn-luxury btn-sm btn-gold" 
+                        {% if unit.partners_list %}
+                        hx-get="{% url 'contract_create' %}?unit={{ unit.id }}"
+                        hx-target="#modal-body"
+                        hx-trigger="click"
+                        onclick="openModal('إنشاء عقد جديد')"
+                        {% else %}
+                        disabled
+                        title="يجب تحديد الشركاء أولاً"
+                        {% endif %}>
+                    <i class="bi bi-file-earmark-plus"></i> عقد جديد
+                </button>
+                {% elif unit.status == 'sold' and partner_return_enabled %}
+                <a href="{% url 'unit_return_preview' unit.id %}" class="btn-luxury btn-sm btn-secondary">
+                    <i class="bi bi-arrow-return-right"></i> إرجاع
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-building"></i>
+            </div>
+            <h3 class="empty-state-title">لا توجد وحدات</h3>
+            <p class="empty-state-text">لم يتم العثور على أي وحدات تطابق معايير البحث</p>
+            <button class="btn-luxury" onclick="location.href='{% url 'unit_create' %}'">
+                <i class="bi bi-plus-lg"></i> إضافة أول وحدة
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination pagination-luxury justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}">{{ num }}</a>
+        </li>
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<style>
+/* Search Box */
+.search-box {
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.search-box input {
+    padding-right: 2.5rem;
+}
+
+/* Unit Card */
+.unit-card {
+    position: relative;
+    overflow: visible;
+    transition: all var(--transition-base);
+}
+
+.unit-card:hover {
+    transform: translateY(-4px);
+}
+
+.unit-status-badge {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: var(--shadow-md);
+    z-index: 1;
+}
+
+.badge-available {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    color: white;
+}
+
+.badge-sold {
+    background: linear-gradient(135deg, #16a34a, #059669);
+    color: white;
+}
+
+.badge-reserved {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.badge-returned {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.unit-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-top: 1rem;
+}
+
+.unit-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.unit-title h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.unit-code {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.unit-details {
+    margin-bottom: 1.5rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.detail-item i {
+    color: var(--primary);
+}
+
+.unit-price {
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.price-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.price-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    font-family: var(--font-display);
+}
+
+.price-remaining {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.unit-partners {
+    margin-bottom: 1.5rem;
+}
+
+.partners-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.partners-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.partner-chip {
+    background: var(--bg-tertiary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.unit-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--warning);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--warning);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+.unit-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+/* Action Bar */
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.action-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.action-bar-left {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Filters Form */
+.filters-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+
+/* Pagination */
+.pagination-luxury {
+    gap: 0.5rem;
+}
+
+.pagination-luxury .page-link {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.pagination-luxury .page-link:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.pagination-luxury .page-item.active .page-link {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .action-bar-left {
+        flex-direction: column;
+    }
+    
+    .unit-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// Import Units
+function importUnits() {
+    showToast('جاري فتح نافذة الاستيراد...', 'info');
+    // Open import modal
+    htmx.ajax('GET', '{% url "unit_import" %}', {
+        target: '#modal-body',
+        swap: 'innerHTML'
+    });
+    openModal('استيراد وحدات من ملف');
+}
+
+// Export Units
+function exportUnits() {
+    showToast('جاري تصدير البيانات...', 'info');
+    window.location.href = '{% url "unit_export" %}?format=excel';
+}
+
+// Inline Editing (if enabled)
+{% if inline_editing_enabled %}
+document.addEventListener('DOMContentLoaded', function() {
+    // Make certain fields editable
+    document.querySelectorAll('[data-editable]').forEach(element => {
+        element.setAttribute('contenteditable', 'true');
+        element.addEventListener('blur', function() {
+            const unitId = this.dataset.unitId;
+            const field = this.dataset.field;
+            const value = this.textContent.trim();
+            
+            // Send update via AJAX
+            htmx.ajax('POST', `{% url 'unit_inline_edit' 0 %}`.replace('0', unitId), {
+                values: {
+                    field: field,
+                    value: value
+                },
+                target: this,
+                swap: 'outerHTML'
+            });
+        });
+    });
+});
+{% endif %}
+</script>
 {% endblock %}

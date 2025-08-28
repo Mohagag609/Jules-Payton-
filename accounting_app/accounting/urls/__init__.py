@@ -4,17 +4,40 @@ from accounting.views import dashboard
 app_name = 'accounting'
 
 urlpatterns = [
-    path('', dashboard.dashboard_view, name='dashboard'),
-    path('partners/', include('accounting.urls.partners', namespace='partners')),
-    path('safes/', include('accounting.urls.safes', namespace='safes')),
-    path('customers/', include('accounting.urls.customers', namespace='customers')),
-    path('suppliers/', include('accounting.urls.suppliers', namespace='suppliers')),
-    path('units/', include('accounting.urls.units', namespace='units')),
-    path('projects/', include('accounting.urls.projects_store', namespace='projects_store')),
-    path('contracts/', include('accounting.urls.contracts', namespace='contracts')),
-    path('installments/', include('accounting.urls.installments', namespace='installments')),
-    path('vouchers/', include('accounting.urls.vouchers', namespace='vouchers')),
-    path('reports/', include('accounting.urls.reports', namespace='reports')),
-    path('settlements/', include('accounting.urls.settlements', namespace='settlements')),
-    # Add other app-specific url modules here
+    # Dashboard
+    path('', include('accounting.urls.dashboard')),
+    
+    # Core Modules
+    path('partners/', include('accounting.urls.partners')),
+    path('safes/', include('accounting.urls.safes')),
+    path('customers/', include('accounting.urls.customers')),
+    path('suppliers/', include('accounting.urls.suppliers')),
+    path('units/', include('accounting.urls.units')),
+    path('projects/', include('accounting.urls.projects_store')),
+    path('contracts/', include('accounting.urls.contracts')),
+    path('installments/', include('accounting.urls.installments')),
+    path('vouchers/', include('accounting.urls.vouchers')),
+    path('settlements/', include('accounting.urls.settlements')),
+    
+    # New Modules
+    path('brokers/', include('accounting.urls.brokers')),
+    path('transfers/', include('accounting.urls.transfers')),
+    path('treasury/', include('accounting.urls.treasury')),
+    path('partner-debts/', include('accounting.urls.partner_debts')),
+    
+    # Reports & Analytics
+    path('reports/', include('accounting.urls.reports')),
+    
+    # System
+    path('audit/', include('accounting.urls.audit')),
+    path('backup/', include('accounting.urls.backup')),
+    path('settings/', include('accounting.urls.settings')),
+    
+    # API Endpoints
+    path('api/undo/', dashboard.undo_action, name='undo_action'),
+    path('api/redo/', dashboard.redo_action, name='redo_action'),
+    path('api/theme/', dashboard.update_theme, name='update_theme'),
+    path('api/search/', dashboard.global_search, name='global_search'),
+    path('api/lock/', dashboard.lock_app, name='lock_app'),
+    path('api/unlock/', dashboard.unlock_app, name='unlock_app'),
 ]

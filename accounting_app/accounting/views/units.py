@@ -1,60 +1,258 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods, require_POST
-from django.db.models import ProtectedError
+"""
+Unit Views with Advanced Features
+"""
 
-from accounting.models import Unit
-from accounting.forms import UnitForm
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db import transaction
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_http_methods
+
+from accounting.models import Unit, UnitPartner, Partner, PartnersGroup
+from accounting.services.returns import UnitReturnService
+from accounting.services.audit import AuditService
+from accounting.forms import UnitForm, UnitPartnerForm
+from core.feature_flags import LEGACY_INLINE_EDITING_ENABLED
+
 
 @login_required
 def unit_list_view(request):
-    form = UnitForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        unit = form.save()
-        response = render(request, 'accounting/units/_row.html', {'unit': unit})
-        response['HX-Retarget'] = '#unit-table-body'
-        response['HX-Reswap'] = 'afterbegin'
-        form_response = render(request, 'accounting/units/_form_container.html', {'form': UnitForm()})
-        response.content += form_response.content
-        return response
-
-    units = Unit.objects.select_related('partners_group', 'contract').all()
+    """
+    List all units with search and filters.
+    """
+    units = Unit.objects.all().select_related('partners_group')
+    
+    # Search
+    search = request.GET.get('search', '')
+    if search:
+        units = units.filter(
+            Q(code__icontains=search) |
+            Q(name__icontains=search) |
+            Q(building_no__icontains=search)
+        )
+    
+    # Filters
+    unit_type = request.GET.get('type')
+    if unit_type:
+        units = units.filter(type=unit_type)
+    
+    status = request.GET.get('status')
+    if status:
+        units = units.filter(status=status)
+    
+    # Calculate remaining for each unit
+    for unit in units:
+        unit.remaining = unit.calculate_remaining()
+        unit.partners_list = UnitPartner.objects.filter(
+            unit=unit
+        ).select_related('partner')
+    
     context = {
         'units': units,
-        'form': form,
-        'page_title': 'الوحدات'
+        'unit_types': Unit.UnitType.choices,
+        'unit_statuses': [
+            ('available', 'متاحة'),
+            ('sold', 'مباعة'),
+            ('reserved', 'محجوزة'),
+            ('returned', 'مرتجعة'),
+        ],
+        'search': search,
+        'selected_type': unit_type,
+        'selected_status': status,
+        'inline_editing_enabled': LEGACY_INLINE_EDITING_ENABLED,
     }
+    
     return render(request, 'accounting/units/list.html', context)
 
-@login_required
-@require_POST
-def unit_update_view(request, pk):
-    unit = get_object_or_404(Unit, pk=pk)
-    form = UnitForm(request.POST, instance=unit)
-    if form.is_valid():
-        unit = form.save()
-        return render(request, 'accounting/units/_row.html', {'unit': unit})
-    return render(request, 'accounting/units/_form_container.html', {'form': form, 'unit': unit})
 
 @login_required
-def unit_get_form_view(request, pk):
+def unit_detail_view(request, pk):
+    """
+    Unit detail view with partner management.
+    """
     unit = get_object_or_404(Unit, pk=pk)
-    form = UnitForm(instance=unit)
-    return render(request, 'accounting/units/_form_container.html', {'form': form, 'unit': unit})
+    partners = UnitPartner.objects.filter(
+        unit=unit
+    ).select_related('partner')
+    
+    total_percent = sum(p.percent for p in partners)
+    available_partners = Partner.objects.filter(is_active=True).exclude(
+        id__in=partners.values_list('partner_id', flat=True)
+    )
+    
+    # Check if unit can be sold
+    can_create_contract = total_percent == 100 and unit.status == 'available'
+    
+    # Check if return process is available
+    can_return = unit.status == 'sold' and hasattr(unit, 'contract')
+    
+    context = {
+        'unit': unit,
+        'partners': partners,
+        'total_percent': total_percent,
+        'available_partners': available_partners,
+        'can_create_contract': can_create_contract,
+        'can_return': can_return,
+        'partner_return_enabled': LEGACY_PARTNER_RETURN_ENABLED,
+    }
+    
+    return render(request, 'accounting/units/detail.html', context)
+
 
 @login_required
-@require_http_methods(["DELETE"])
-def unit_delete_view(request, pk):
-    unit = get_object_or_404(Unit, pk=pk)
+@require_http_methods(["POST"])
+def unit_add_partner(request, unit_id):
+    """
+    Add partner to unit (HTMX endpoint).
+    """
+    unit = get_object_or_404(Unit, pk=unit_id)
+    
+    partner_id = request.POST.get('partner_id')
+    percent = request.POST.get('percent', 0)
+    
     try:
-        unit.delete()
-        response = HttpResponse()
-        toast_event = {"showToast": {"message": f"تم حذف الوحدة '{unit.name}' بنجاح.", "type": "success"}}
-        response['HX-Trigger'] = json.dumps(toast_event)
-        return response
-    except ProtectedError:
-        response = HttpResponse()
-        toast_event = {"showToast": {"message": "لا يمكن حذف هذه الوحدة لأنها مرتبطة بعقد.", "type": "error"}}
-        response['HX-Trigger'] = json.dumps(toast_event)
-        return response
+        percent = Decimal(percent)
+        if percent <= 0 or percent > 100:
+            raise ValueError("النسبة يجب أن تكون بين 0 و 100")
+        
+        # Check total percentage
+        current_total = UnitPartner.objects.filter(
+            unit=unit
+        ).aggregate(total=Sum('percent'))['total'] or 0
+        
+        if current_total + percent > 100:
+            raise ValueError(f"لا يمكن إضافة هذه النسبة. الإجمالي الحالي: {current_total}%")
+        
+        partner = get_object_or_404(Partner, pk=partner_id)
+        
+        # Create unit partner
+        unit_partner = UnitPartner.objects.create(
+            unit=unit,
+            partner=partner,
+            percent=percent
+        )
+        
+        # Log action
+        AuditService.log_create(request.user, unit_partner, request)
+        
+        messages.success(request, f"تم إضافة {partner.name} بنسبة {percent}%")
+        
+    except Exception as e:
+        messages.error(request, str(e))
+    
+    # Return updated partners list (HTMX partial)
+    partners = UnitPartner.objects.filter(
+        unit=unit
+    ).select_related('partner')
+    
+    total_percent = sum(p.percent for p in partners)
+    
+    return render(request, 'accounting/units/partials/partners_list.html', {
+        'unit': unit,
+        'partners': partners,
+        'total_percent': total_percent,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def unit_inline_edit(request, pk):
+    """
+    Inline edit unit field (HTMX endpoint).
+    """
+    if not LEGACY_INLINE_EDITING_ENABLED:
+        return JsonResponse({'error': 'Inline editing is disabled'}, status=403)
+    
+    unit = get_object_or_404(Unit, pk=pk)
+    field = request.POST.get('field')
+    value = request.POST.get('value')
+    
+    allowed_fields = ['name', 'floor', 'area', 'notes']
+    
+    if field not in allowed_fields:
+        return JsonResponse({'error': 'Field not allowed'}, status=400)
+    
+    try:
+        old_value = getattr(unit, field)
+        
+        # Validate and set value
+        if field == 'area' and value:
+            value = Decimal(value)
+        
+        setattr(unit, field, value)
+        unit.full_clean()
+        unit.save()
+        
+        # Log change
+        AuditService.log_update(
+            request.user,
+            unit,
+            {field: {'old': old_value, 'new': value}},
+            request
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'value': str(getattr(unit, field))
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required
+def unit_return_preview(request, pk):
+    """
+    Preview unit return process.
+    """
+    unit = get_object_or_404(Unit, pk=pk)
+    
+    if request.method == 'POST':
+        buying_partner_id = request.POST.get('buying_partner_id')
+        
+        try:
+            preview = UnitReturnService.get_return_preview(
+                unit, int(buying_partner_id)
+            )
+            
+            if not preview['success']:
+                messages.error(request, '; '.join(preview['errors']))
+                return redirect('unit_detail', pk=unit.pk)
+            
+            return render(request, 'accounting/units/return_preview.html', preview)
+            
+        except Exception as e:
+            messages.error(request, str(e))
+            return redirect('unit_detail', pk=unit.pk)
+    
+    # GET request - show partner selection
+    partners = UnitPartner.objects.filter(
+        unit=unit
+    ).select_related('partner')
+    
+    return render(request, 'accounting/units/return_select.html', {
+        'unit': unit,
+        'partners': partners,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def unit_return_execute(request, pk):
+    """
+    Execute unit return process.
+    """
+    unit = get_object_or_404(Unit, pk=pk)
+    buying_partner_id = request.POST.get('buying_partner_id')
+    
+    try:
+        service = UnitReturnService(unit, int(buying_partner_id))
+        result = service.execute(user=request.user)
+        
+        messages.success(request, result['message'])
+        return redirect('unit_detail', pk=unit.pk)
+        
+    except Exception as e:
+        messages.error(request, str(e))
+        return redirect('unit_detail', pk=unit.pk)

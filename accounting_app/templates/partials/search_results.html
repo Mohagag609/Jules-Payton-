@@ -1,0 +1,98 @@
+<!-- Global Search Results (HTMX Partial) -->
+{% if results %}
+<div class="search-results">
+    {% for result in results %}
+    <a href="{{ result.url }}" class="search-result-item">
+        <div class="result-icon">
+            <i class="bi {{ result.icon }}"></i>
+        </div>
+        <div class="result-content">
+            <div class="result-title">{{ result.title }}</div>
+            <div class="result-subtitle">{{ result.subtitle }}</div>
+        </div>
+        <div class="result-type">
+            {% if result.type == 'unit' %}
+                <span class="badge-luxury badge-primary">وحدة</span>
+            {% elif result.type == 'customer' %}
+                <span class="badge-luxury badge-secondary">عميل</span>
+            {% elif result.type == 'contract' %}
+                <span class="badge-luxury badge-gold">عقد</span>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="search-no-results">
+    <i class="bi bi-search"></i>
+    <p>لا توجد نتائج</p>
+</div>
+{% endif %}
+
+<style>
+.search-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.search-result-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.result-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1.25rem;
+}
+
+.result-content {
+    flex: 1;
+}
+
+.result-title {
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+}
+
+.result-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.result-type {
+    margin-right: auto;
+}
+
+.search-no-results {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.search-no-results i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+</style>

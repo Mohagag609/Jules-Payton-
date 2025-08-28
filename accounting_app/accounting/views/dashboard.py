@@ -7,6 +7,8 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_http_methods
 from datetime import datetime, timedelta
 from decimal import Decimal
 import json
@@ -15,6 +17,7 @@ from accounting.models import (
     Unit, Contract, Customer, Partner, Installment,
     Safe, ReceiptVoucher, PaymentVoucher, BrokerDue
 )
+from core.feature_flags import LEGACY_UNDO_REDO_ENABLED
 
 
 @login_required
@@ -330,4 +333,292 @@ def get_partner_profits_summary():
     # Sort by total receipts descending
     summary.sort(key=lambda x: x['total_receipts'], reverse=True)
     
-    return summary[:5]  # Top 5 partners
+            return summary[:5]  # Top 5 partners
+
+
+@login_required
+@require_http_methods(["POST"])
+def undo_action(request):
+    """
+    Undo last action (AJAX endpoint).
+    """
+    if not LEGACY_UNDO_REDO_ENABLED:
+        return JsonResponse({'error': 'Undo/Redo is disabled'}, status=403)
+    
+    undo_stack = request.session.get('undo_stack', [])
+    undo_index = request.session.get('undo_index', -1)
+    
+    if undo_index > 0:
+        undo_index -= 1
+        request.session['undo_index'] = undo_index
+        request.session.modified = True
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'تم التراجع بنجاح',
+            'can_undo': undo_index > 0,
+            'can_redo': True
+        })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'لا يمكن التراجع أكثر'
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def redo_action(request):
+    """
+    Redo action (AJAX endpoint).
+    """
+    if not LEGACY_UNDO_REDO_ENABLED:
+        return JsonResponse({'error': 'Undo/Redo is disabled'}, status=403)
+    
+    undo_stack = request.session.get('undo_stack', [])
+    undo_index = request.session.get('undo_index', -1)
+    
+    if undo_index < len(undo_stack) - 1:
+        undo_index += 1
+        request.session['undo_index'] = undo_index
+        request.session.modified = True
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'تمت الإعادة بنجاح',
+            'can_undo': True,
+            'can_redo': undo_index < len(undo_stack) - 1
+        })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'لا يمكن الإعادة أكثر'
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_theme(request):
+    """
+    Update user theme preference (AJAX endpoint).
+    """
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        theme = data.get('theme', 'dark')
+        
+        if hasattr(request.user, 'settings'):
+            settings = request.user.settings
+            settings.theme = theme
+            settings.save()
+        else:
+            from accounting.models import UserSettings
+            UserSettings.objects.create(
+                user=request.user,
+                theme=theme
+            )
+        
+        return JsonResponse({
+            'success': True,
+            'theme': theme
+        })
+    
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+
+@login_required
+def global_search(request):
+    """
+    Global search across all models (AJAX endpoint).
+    """
+    query = request.GET.get('q', '').strip()
+    
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+    
+    results = []
+    
+    # Search units
+    units = Unit.objects.filter(
+        Q(code__icontains=query) |
+        Q(name__icontains=query)
+    )[:5]
+    
+    for unit in units:
+        results.append({
+            'type': 'unit',
+            'title': unit.name,
+            'subtitle': f'كود: {unit.code}',
+            'url': f'/units/{unit.id}/',
+            'icon': 'bi-building'
+        })
+    
+    # Search customers
+    customers = Customer.objects.filter(
+        Q(name__icontains=query) |
+        Q(phone__icontains=query) |
+        Q(code__icontains=query)
+    )[:5]
+    
+    for customer in customers:
+        results.append({
+            'type': 'customer',
+            'title': customer.name,
+            'subtitle': f'هاتف: {customer.phone}',
+            'url': f'/customers/{customer.id}/',
+            'icon': 'bi-person'
+        })
+    
+    # Search contracts
+    contracts = Contract.objects.filter(
+        Q(code__icontains=query)
+    ).select_related('customer', 'unit')[:5]
+    
+    for contract in contracts:
+        results.append({
+            'type': 'contract',
+            'title': f'عقد {contract.code}',
+            'subtitle': f'{contract.customer.name} - {contract.unit.name}',
+            'url': f'/contracts/{contract.id}/',
+            'icon': 'bi-file-text'
+        })
+    
+    return render(request, 'partials/search_results.html', {
+        'results': results[:10]  # Limit to 10 results
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def lock_app(request):
+    """
+    Lock the application.
+    """
+    if hasattr(request.user, 'settings'):
+        settings = request.user.settings
+        settings.is_locked = True
+        settings.save()
+        
+        request.session['unlocked'] = False
+        
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def unlock_app(request):
+    """
+    Unlock the application.
+    """
+    password = request.POST.get('password')
+    
+    if hasattr(request.user, 'settings'):
+        settings = request.user.settings
+        
+        if settings.lock_password == password:
+            request.session['unlocked'] = True
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'كلمة المرور غير صحيحة'
+            }, status=400)
+    
+    return JsonResponse({'success': False}, status=400)
+
+
+@login_required
+def dashboard_export_view(request):
+    """
+    Export dashboard data to Excel.
+    """
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    
+    # Calculate KPIs
+    kpis = calculate_kpis(from_date, to_date)
+    
+    # Prepare data for export
+    data_dict = {
+        'المؤشرات الرئيسية': {
+            'model_name': 'custom',
+            'data': [{
+                'المؤشر': 'إجمالي المبيعات',
+                'القيمة': float(kpis['financial']['total_sales'])
+            }, {
+                'المؤشر': 'إجمالي المتحصلات',
+                'القيمة': float(kpis['financial']['total_receipts'])
+            }, {
+                'المؤشر': 'إجمالي المديونية',
+                'القيمة': float(kpis['financial']['total_debt'])
+            }, {
+                'المؤشر': 'صافي الربح',
+                'القيمة': float(kpis['financial']['net_profit'])
+            }]
+        },
+        'حالة الوحدات': {
+            'model_name': 'custom',
+            'data': [{
+                'الحالة': 'متاحة',
+                'العدد': kpis['units']['available']
+            }, {
+                'الحالة': 'مباعة',
+                'العدد': kpis['units']['sold']
+            }, {
+                'الحالة': 'محجوزة',
+                'العدد': kpis['units']['reserved']
+            }]
+        }
+    }
+    
+    # Generate Excel
+    from accounting.services.import_export import ImportExportService
+    excel_data = ImportExportService.export_excel(
+        data_dict,
+        filename=f'dashboard_{timezone.now().date()}.xlsx',
+        user=request.user
+    )
+    
+    response = HttpResponse(
+        excel_data,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="dashboard.xlsx"'
+    
+    return response
+
+
+@login_required
+def dashboard_print_view(request):
+    """
+    Print-friendly dashboard view.
+    """
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    
+    # Calculate KPIs
+    kpis = calculate_kpis(from_date, to_date)
+    
+    # Get data
+    upcoming_installments = get_upcoming_installments(20)  # More for print
+    recent_transactions = get_recent_transactions(20)
+    partner_profits = get_partner_profits_summary()
+    
+    context = {
+        'kpis': kpis,
+        'upcoming_installments': upcoming_installments,
+        'recent_transactions': recent_transactions,
+        'partner_profits': partner_profits,
+        'from_date': from_date,
+        'to_date': to_date,
+        'print_mode': True
+    }
+    
+    return render(request, 'accounting/dashboard_print.html', context)
