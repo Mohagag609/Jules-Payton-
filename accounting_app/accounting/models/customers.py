@@ -33,7 +33,8 @@ class Customer(models.Model):
     )
     created_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="تاريخ الإنشاء"
+        verbose_name="تاريخ الإنشاء",
+        null=True  # مؤقتاً للسماح بالقيم الفارغة
     )
 
     class Meta:
