@@ -1,3 +1,13 @@
+// Initialize messages container if not exists
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.getElementById('messages-container')) {
+        const container = document.createElement('div');
+        container.id = 'messages-container';
+        container.className = 'fixed top-20 right-5 z-[100] space-y-2';
+        document.body.appendChild(container);
+    }
+});
+
 // Global success message function
 function showSuccessMessage(message) {
     const messagesContainer = document.getElementById('messages-container');

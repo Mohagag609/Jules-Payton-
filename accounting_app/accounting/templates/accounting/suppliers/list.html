@@ -74,6 +74,31 @@ window.onclick = function(event) {
 document.addEventListener('htmx:afterSwap', function(event) {
     if (event.detail.target.id === 'supplier-table-body') {
         closeFormModal();
+        // إضافة تأثير للعنصر الجديد
+        const newRow = event.detail.target.firstElementChild;
+        if (newRow) {
+            newRow.classList.add('bg-purple-50');
+            setTimeout(() => {
+                newRow.classList.remove('bg-purple-50');
+                newRow.classList.add('transition-colors', 'duration-1000');
+            }, 100);
+        }
+    }
+});
+
+// Listen for custom event
+document.body.addEventListener('supplierAdded', function() {
+    closeFormModal();
+    showSuccessMessage('تم إضافة المورد بنجاح!');
+});
+
+// Listen for toast events
+document.body.addEventListener('showToast', function(evt) {
+    const { message, type } = evt.detail;
+    if (type === 'success') {
+        showSuccessMessage(message);
+    } else {
+        showErrorMessage(message);
     }
 });
 </script>
