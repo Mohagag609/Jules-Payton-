@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="luxury-card fade-in">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <!-- كود الوحدة -->
+                    <div class="col-md-6">
+                        <label for="{{ form.code.id_for_label }}" class="form-label">
+                            {{ form.code.label }}
+                            {% if form.code.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.code.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- اسم الوحدة -->
+                    <div class="col-md-6">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            {{ form.name.label }}
+                            {% if form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.name.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- رقم المبنى -->
+                    <div class="col-md-4">
+                        <label for="{{ form.building_no.id_for_label }}" class="form-label">
+                            {{ form.building_no.label }}
+                        </label>
+                        {{ form.building_no }}
+                        {% if form.building_no.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.building_no.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- الطابق -->
+                    <div class="col-md-4">
+                        <label for="{{ form.floor.id_for_label }}" class="form-label">
+                            {{ form.floor.label }}
+                        </label>
+                        {{ form.floor }}
+                        {% if form.floor.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.floor.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- المساحة -->
+                    <div class="col-md-4">
+                        <label for="{{ form.area.id_for_label }}" class="form-label">
+                            {{ form.area.label }}
+                        </label>
+                        {{ form.area }}
+                        {% if form.area.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.area.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- النوع -->
+                    <div class="col-md-6">
+                        <label for="{{ form.type.id_for_label }}" class="form-label">
+                            {{ form.type.label }}
+                            {% if form.type.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.type }}
+                        {% if form.type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.type.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- الحالة -->
+                    <div class="col-md-6">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                            {{ form.status.label }}
+                            {% if form.status.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.status.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- السعر -->
+                    <div class="col-md-6">
+                        <label for="{{ form.price_total.id_for_label }}" class="form-label">
+                            {{ form.price_total.label }}
+                            {% if form.price_total.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.price_total }}
+                        {% if form.price_total.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.price_total.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- التصنيف -->
+                    <div class="col-md-6">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">
+                            {{ form.category.label }}
+                            {% if form.category.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.category.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- مجموعة الشركاء -->
+                    <div class="col-md-12">
+                        <label for="{{ form.partners_group.id_for_label }}" class="form-label">
+                            {{ form.partners_group.label }}
+                        </label>
+                        {{ form.partners_group }}
+                        {% if form.partners_group.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.partners_group.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- الملاحظات -->
+                    <div class="col-12">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">
+                            {{ form.notes.label }}
+                        </label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.notes.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="text-end">
+                    <a href="{% url 'units:unit_list' %}" class="btn btn-secondary me-2">
+                        <i class="bi bi-x-circle me-1"></i>
+                        إلغاء
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>
+                        {{ submit_text|default:"حفظ" }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* إضافة classes للـ form fields */
+{% for field in form %}
+    {% if field.field.widget.input_type == 'select' %}
+        #{{ field.id_for_label }} {
+            appearance: none;
+        }
+    {% endif %}
+{% endfor %}
+
+/* تحسين شكل required fields */
+.form-label .text-danger {
+    font-size: 1.1em;
+    margin-left: 3px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة classes تلقائياً للـ form fields
+    const form = document.querySelector('form');
+    if (form) {
+        // Add Bootstrap classes to all form fields
+        form.querySelectorAll('input, select, textarea').forEach(field => {
+            field.classList.add('form-control');
+            if (field.tagName === 'SELECT') {
+                field.classList.add('form-select');
+                field.classList.remove('form-control');
+            }
+        });
+    }
+    
+    // Bootstrap form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+{% endblock %}
