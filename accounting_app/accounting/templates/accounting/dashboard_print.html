@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة التحكم - طباعة</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+            direction: rtl;
+        }
+        
+        /* Header */
+        .print-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #1e3a8a;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .company-section {
+            flex: 1;
+        }
+        
+        .company-name {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+        }
+        
+        .company-details {
+            font-size: 10pt;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .report-info {
+            text-align: left;
+            font-size: 10pt;
+        }
+        
+        .report-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+        }
+        
+        .report-date {
+            color: #666;
+        }
+        
+        /* KPIs Section */
+        .kpis-section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-right: 4px solid #1e3a8a;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .kpi-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background: #fafafa;
+        }
+        
+        .kpi-label {
+            font-size: 10pt;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .kpi-value {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        
+        .kpi-unit {
+            font-size: 10pt;
+            color: #666;
+        }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .data-table th {
+            background: #1e3a8a;
+            color: white;
+            padding: 10px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 10pt;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .data-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 10pt;
+        }
+        
+        .data-table tbody tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #f5f5f5;
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 9pt;
+            font-weight: bold;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-late {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Footer */
+        .print-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            background: white;
+        }
+        
+        .page-number {
+            content: "صفحة " counter(page);
+        }
+        
+        /* Summary Box */
+        .summary-box {
+            background: #f0f7ff;
+            border: 2px solid #1e3a8a;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            page-break-inside: avoid;
+        }
+        
+        .summary-title {
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 10px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-label {
+            color: #666;
+        }
+        
+        .summary-value {
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        
+        /* Charts Placeholder */
+        .chart-placeholder {
+            border: 2px dashed #ddd;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        
+        /* Page Breaks */
+        .page-break {
+            page-break-after: always;
+        }
+        
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="print-header">
+        <div class="company-section">
+            <div class="company-name">نظام إدارة العقارات الفاخر</div>
+            <div class="company-details">
+                العنوان: شارع التحرير، القاهرة<br>
+                الهاتف: 02-12345678 | البريد: info@luxury-realestate.com<br>
+                السجل التجاري: 123456 | البطاقة الضريبية: 789-123-456
+            </div>
+        </div>
+        <div class="report-info">
+            <div class="report-title">تقرير لوحة التحكم</div>
+            <div class="report-date">
+                التاريخ: {{ "now"|date:"Y/m/d" }}<br>
+                {% if from_date and to_date %}
+                الفترة: من {{ from_date|date:"Y/m/d" }} إلى {{ to_date|date:"Y/m/d" }}
+                {% else %}
+                الفترة: كل الفترات
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs Section -->
+    <div class="kpis-section">
+        <h2 class="section-title">المؤشرات الرئيسية</h2>
+        
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">إجمالي المبيعات</div>
+                <div class="kpi-value">{{ kpis.financial.total_sales|floatformat:0 }}</div>
+                <div class="kpi-unit">جنيه مصري</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">المتحصلات</div>
+                <div class="kpi-value">{{ kpis.financial.total_receipts|floatformat:0 }}</div>
+                <div class="kpi-unit">جنيه مصري</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">نسبة التحصيل</div>
+                <div class="kpi-value">{{ kpis.financial.collection_percentage }}%</div>
+                <div class="kpi-unit">من المبيعات</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">صافي الربح</div>
+                <div class="kpi-value">{{ kpis.financial.net_profit|floatformat:0 }}</div>
+                <div class="kpi-unit">جنيه مصري</div>
+            </div>
+        </div>
+
+        <div class="summary-box">
+            <div class="summary-title">ملخص الوحدات</div>
+            <div class="summary-item">
+                <span class="summary-label">إجمالي الوحدات</span>
+                <span class="summary-value">{{ kpis.units.total }} وحدة</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">وحدات متاحة</span>
+                <span class="summary-value">{{ kpis.units.available }} وحدة</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">وحدات مباعة</span>
+                <span class="summary-value">{{ kpis.units.sold }} وحدة</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">وحدات محجوزة</span>
+                <span class="summary-value">{{ kpis.units.reserved }} وحدة</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Installments -->
+    <div class="table-section">
+        <h2 class="section-title">الأقساط القادمة والمتأخرة</h2>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 20%">الوحدة</th>
+                    <th style="width: 25%">العميل</th>
+                    <th style="width: 15%">المبلغ</th>
+                    <th style="width: 15%">تاريخ الاستحقاق</th>
+                    <th style="width: 10%">الأيام</th>
+                    <th style="width: 10%">الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for installment in upcoming_installments %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ installment.unit }}</td>
+                    <td>{{ installment.customer }}</td>
+                    <td style="font-weight: bold;">{{ installment.amount|floatformat:0 }} ج.م</td>
+                    <td>{{ installment.due_date|date:"Y/m/d" }}</td>
+                    <td>
+                        {% if installment.days_until_due < 0 %}
+                            <span style="color: #dc3545;">متأخر {{ installment.days_until_due|abs }} يوم</span>
+                        {% elif installment.days_until_due == 0 %}
+                            <span style="color: #ffc107;">اليوم</span>
+                        {% else %}
+                            بعد {{ installment.days_until_due }} يوم
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ installment.status|lower }}">
+                            {{ installment.get_status_display|default:installment.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: #999;">
+                        لا توجد أقساط مستحقة
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- Recent Transactions -->
+    <div class="table-section">
+        <h2 class="section-title">آخر الحركات المالية</h2>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 10%">النوع</th>
+                    <th style="width: 15%">التاريخ</th>
+                    <th style="width: 35%">الوصف</th>
+                    <th style="width: 15%">الخزنة</th>
+                    <th style="width: 20%">المبلغ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in recent_transactions %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        {% if transaction.type == 'receipt' %}
+                            <span style="color: #28a745;">قبض</span>
+                        {% else %}
+                            <span style="color: #dc3545;">صرف</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ transaction.date|date:"Y/m/d" }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.safe }}</td>
+                    <td style="font-weight: bold;">
+                        {% if transaction.type == 'receipt' %}
+                            <span style="color: #28a745;">+{{ transaction.amount|floatformat:0 }} ج.م</span>
+                        {% else %}
+                            <span style="color: #dc3545;">-{{ transaction.amount|floatformat:0 }} ج.م</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #999;">
+                        لا توجد حركات مالية
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Partner Profits Summary -->
+    {% if partner_profits %}
+    <div class="table-section">
+        <h2 class="section-title">ملخص أرباح الشركاء</h2>
+        
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%">#</th>
+                    <th style="width: 25%">الشريك</th>
+                    <th style="width: 10%">الوحدات</th>
+                    <th style="width: 20%">قيمة الحصص</th>
+                    <th style="width: 20%">المتحصلات</th>
+                    <th style="width: 20%">نسبة العائد</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profit in partner_profits %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ profit.partner.name }}</td>
+                    <td>{{ profit.total_units }} وحدة</td>
+                    <td>{{ profit.total_share_value|floatformat:0 }} ج.م</td>
+                    <td style="color: #28a745; font-weight: bold;">
+                        {{ profit.total_receipts|floatformat:0 }} ج.م
+                    </td>
+                    <td>
+                        <strong>{{ profit.profit_percentage }}%</strong>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="print-footer">
+        <div>نظام إدارة العقارات الفاخر - تقرير آلي - جميع الحقوق محفوظة © 2024</div>
+        <div class="page-number"></div>
+    </div>
+
+    <script>
+        window.print();
+    </script>
+</body>
+</html>

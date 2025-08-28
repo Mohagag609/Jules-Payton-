@@ -1,0 +1,562 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}التقارير - نظام إدارة العقارات الفاخر{% endblock %}
+
+{% block page_title %}مركز التقارير والتحليلات{% endblock %}
+
+{% block breadcrumb %}
+<a href="{% url 'dashboard' %}">الرئيسية</a>
+<i class="bi bi-chevron-left mx-2"></i>
+<span>التقارير</span>
+{% endblock %}
+
+{% block content %}
+<!-- Reports Header -->
+<div class="luxury-card mb-4 fade-in">
+    <div class="reports-header">
+        <div class="header-content">
+            <h1 class="display-title">
+                <i class="bi bi-graph-up-arrow"></i>
+                مركز التقارير والتحليلات
+            </h1>
+            <p class="header-subtitle">
+                اكتشف رؤى قيمة واتخذ قرارات مدروسة مع تقاريرنا الشاملة
+            </p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-luxury" onclick="showScheduleModal()">
+                <i class="bi bi-calendar-check"></i> جدولة تقرير
+            </button>
+            <button class="btn-luxury btn-secondary" onclick="showExportModal()">
+                <i class="bi bi-cloud-download"></i> تصدير مجمع
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3 slide-up">
+        <div class="quick-stat-card">
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ report_categories|length }}</div>
+                <div class="stat-label">فئات التقارير</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 slide-up" style="animation-delay: 0.1s;">
+        <div class="quick-stat-card">
+            <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #16a34a, #059669);">
+                <i class="bi bi-speedometer2"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">24</div>
+                <div class="stat-label">تقرير متاح</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 slide-up" style="animation-delay: 0.2s;">
+        <div class="quick-stat-card">
+            <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">152</div>
+                <div class="stat-label">تقرير هذا الشهر</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 slide-up" style="animation-delay: 0.3s;">
+        <div class="quick-stat-card">
+            <div class="stat-icon-wrapper" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                <i class="bi bi-star-fill"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">5</div>
+                <div class="stat-label">تقارير مفضلة</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Categories -->
+<div class="report-categories">
+    {% for key, category in report_categories.items %}
+    <div class="category-section mb-5 fade-in" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+        <div class="category-header">
+            <div class="category-info">
+                <div class="category-icon {{ category.color }}">
+                    <i class="bi {{ category.icon }}"></i>
+                </div>
+                <div>
+                    <h2 class="category-title">{{ category.title }}</h2>
+                    <p class="category-count">{{ category.reports|length }} تقرير متاح</p>
+                </div>
+            </div>
+            <a href="{% url 'financial_reports' %}?category={{ key }}" class="btn-luxury btn-sm">
+                عرض الكل <i class="bi bi-arrow-left"></i>
+            </a>
+        </div>
+        
+        <div class="row g-4 mt-3">
+            {% for report in category.reports %}
+            <div class="col-lg-4 col-md-6">
+                <div class="report-card luxury-card h-100">
+                    <div class="report-card-header">
+                        <div class="report-icon">
+                            <i class="bi {{ report.icon }}"></i>
+                        </div>
+                        {% if report.is_favorite %}
+                        <span class="favorite-badge">
+                            <i class="bi bi-star-fill"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="report-card-body">
+                        <h3 class="report-title">{{ report.title }}</h3>
+                        <p class="report-description">{{ report.description }}</p>
+                        <div class="report-meta">
+                            <span class="meta-item">
+                                <i class="bi bi-clock"></i> آخر تشغيل: منذ 3 أيام
+                            </span>
+                            <span class="meta-item">
+                                <i class="bi bi-bar-chart"></i> تفاعلي
+                            </span>
+                        </div>
+                    </div>
+                    <div class="report-card-footer">
+                        <button class="btn-luxury btn-sm w-100" 
+                                onclick="openReport('{{ report.id }}', '{{ report.title }}')">
+                            <i class="bi bi-play-fill"></i> تشغيل التقرير
+                        </button>
+                        <div class="report-actions">
+                            <button class="action-btn" title="جدولة" onclick="scheduleReport('{{ report.id }}')">
+                                <i class="bi bi-calendar-plus"></i>
+                            </button>
+                            <button class="action-btn" title="مفضلة" onclick="toggleFavorite('{{ report.id }}')">
+                                <i class="bi bi-star"></i>
+                            </button>
+                            <button class="action-btn" title="مشاركة" onclick="shareReport('{{ report.id }}')">
+                                <i class="bi bi-share"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Saved Reports Section -->
+<div class="luxury-card fade-in">
+    <div class="card-header-luxury">
+        <h3>التقارير المحفوظة</h3>
+        <button class="btn-luxury btn-sm" onclick="showSavedReports()">
+            عرض الكل <i class="bi bi-arrow-left"></i>
+        </button>
+    </div>
+    <div class="saved-reports-list">
+        <div class="saved-report-item">
+            <div class="report-info">
+                <i class="bi bi-file-earmark-pdf text-danger"></i>
+                <div>
+                    <div class="report-name">تقرير المبيعات الشهري - ديسمبر 2023</div>
+                    <div class="report-date">حُفظ في: 2023/12/25</div>
+                </div>
+            </div>
+            <div class="report-size">2.4 MB</div>
+            <div class="report-actions">
+                <button class="action-btn" title="تحميل">
+                    <i class="bi bi-download"></i>
+                </button>
+                <button class="action-btn" title="عرض">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="action-btn text-danger" title="حذف">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="saved-report-item">
+            <div class="report-info">
+                <i class="bi bi-file-earmark-excel text-success"></i>
+                <div>
+                    <div class="report-name">كشف حساب الشركاء - Q4 2023</div>
+                    <div class="report-date">حُفظ في: 2023/12/20</div>
+                </div>
+            </div>
+            <div class="report-size">1.8 MB</div>
+            <div class="report-actions">
+                <button class="action-btn" title="تحميل">
+                    <i class="bi bi-download"></i>
+                </button>
+                <button class="action-btn" title="عرض">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="action-btn text-danger" title="حذف">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Reports Page Styles */
+.reports-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.header-content {
+    flex: 1;
+}
+
+.display-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.display-title i {
+    color: var(--primary);
+}
+
+.header-subtitle {
+    color: var(--text-muted);
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Quick Stats */
+.quick-stat-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all var(--transition-base);
+    border: 1px solid var(--border-color);
+}
+
+.quick-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Category Section */
+.category-section {
+    position: relative;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.category-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.category-icon.primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.category-icon.secondary {
+    background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+}
+
+.category-icon.gold {
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+}
+
+.category-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.category-count {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Report Card */
+.report-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: all var(--transition-base);
+    border: 2px solid transparent;
+}
+
+.report-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+}
+
+.report-card-header {
+    position: relative;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.report-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.favorite-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--gold);
+    font-size: 1.25rem;
+}
+
+.report-card-body {
+    flex: 1;
+    padding: 1rem 0;
+}
+
+.report-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.report-description {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.report-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.meta-item i {
+    font-size: 0.875rem;
+}
+
+.report-card-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.report-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--text-secondary);
+}
+
+.action-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Saved Reports */
+.saved-reports-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.saved-report-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: all var(--transition-fast);
+}
+
+.saved-report-item:hover {
+    background: var(--bg-tertiary);
+}
+
+.saved-report-item:last-child {
+    border-bottom: none;
+}
+
+.report-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.report-info i {
+    font-size: 1.5rem;
+}
+
+.report-name {
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+}
+
+.report-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.report-size {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .reports-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .header-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .category-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+</style>
+
+<script>
+function openReport(reportId, reportTitle) {
+    showToast(`جاري فتح ${reportTitle}...`, 'info');
+    
+    // Open report with filters
+    htmx.ajax('GET', `/reports/${reportId}/filters/`, {
+        target: '#modal-body',
+        swap: 'innerHTML'
+    });
+    openModal(reportTitle);
+}
+
+function scheduleReport(reportId) {
+    showToast('جاري فتح جدولة التقرير...', 'info');
+    // Implement schedule modal
+}
+
+function toggleFavorite(reportId) {
+    // Toggle favorite status
+    htmx.ajax('POST', `/reports/${reportId}/favorite/`);
+}
+
+function shareReport(reportId) {
+    showToast('جاري إنشاء رابط المشاركة...', 'info');
+    // Implement share functionality
+}
+
+function showScheduleModal() {
+    showToast('ميزة جدولة التقارير قادمة قريباً', 'info');
+}
+
+function showExportModal() {
+    showToast('ميزة التصدير المجمع قادمة قريباً', 'info');
+}
+
+function showSavedReports() {
+    window.location.href = '/reports/saved/';
+}
+</script>
+{% endblock %}
