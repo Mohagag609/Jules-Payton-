@@ -189,3 +189,64 @@ class InstallmentGeneratorService:
             installments.append(installment)
         
         return Installment.objects.bulk_create(installments)
+
+
+def pay_installment(installment_id, amount, payment_date=None):
+    """
+    Process installment payment.
+    
+    Args:
+        installment_id: ID of the installment to pay
+        amount: Payment amount
+        payment_date: Optional payment date (defaults to today)
+    
+    Returns:
+        dict: Result with status and message
+    """
+    from accounting.models import ReceiptVoucher
+    
+    try:
+        installment = Installment.objects.get(pk=installment_id)
+        
+        if installment.status == Installment.Status.PAID:
+            return {
+                'status': 'error',
+                'message': 'القسط مدفوع بالفعل'
+            }
+        
+        # Update installment
+        installment.amount_paid = amount
+        installment.status = Installment.Status.PAID
+        installment.payment_date = payment_date or date.today()
+        installment.save()
+        
+        # Create receipt voucher
+        receipt = ReceiptVoucher.objects.create(
+            date=installment.payment_date,
+            receipt_no=f"RV-{installment.contract.contract_no}-{installment.seq_no}",
+            contract=installment.contract,
+            amount=amount,
+            voucher_type=ReceiptVoucher.VoucherType.INSTALLMENT,
+            notes=f"دفعة رقم {installment.seq_no} للعقد {installment.contract.contract_no}"
+        )
+        
+        # Update contract paid amount
+        installment.contract.amount_paid += amount
+        installment.contract.save()
+        
+        return {
+            'status': 'success',
+            'message': f'تم دفع القسط رقم {installment.seq_no} بنجاح',
+            'receipt_id': receipt.id
+        }
+        
+    except Installment.DoesNotExist:
+        return {
+            'status': 'error',
+            'message': 'القسط غير موجود'
+        }
+    except Exception as e:
+        return {
+            'status': 'error',
+            'message': str(e)
+        }
