@@ -264,3 +264,287 @@ def simple_units_list(request):
     """
     
     return HttpResponse(html)
+
+
+@login_required
+def simple_customers_list(request):
+    """Simple customers list"""
+    customers = Customer.objects.all()
+    
+    html = """
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+        <title>قائمة العملاء</title>
+        <meta charset="utf-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/accounting/">
+                    <i class="bi bi-arrow-right me-2"></i>
+                    رجوع للرئيسية
+                </a>
+            </div>
+        </nav>
+        
+        <div class="container">
+            <h1 class="mb-4">قائمة العملاء</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <a href="/admin/accounting/customer/add/" class="btn btn-primary mb-3">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        إضافة عميل جديد
+                    </a>
+                    
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>الكود</th>
+                                <th>الاسم</th>
+                                <th>الهاتف</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    """
+    
+    for customer in customers:
+        html += f"""
+            <tr>
+                <td>{customer.code}</td>
+                <td>{customer.name}</td>
+                <td>{customer.phone or '-'}</td>
+                <td>{customer.email or '-'}</td>
+                <td><span class="badge bg-success">نشط</span></td>
+            </tr>
+        """
+    
+    html += """
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    """
+    
+    return HttpResponse(html)
+
+
+@login_required
+def simple_contracts_list(request):
+    """Simple contracts list"""
+    contracts = Contract.objects.all().select_related('customer', 'unit')
+    
+    html = """
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+        <title>قائمة العقود</title>
+        <meta charset="utf-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/accounting/">
+                    <i class="bi bi-arrow-right me-2"></i>
+                    رجوع للرئيسية
+                </a>
+            </div>
+        </nav>
+        
+        <div class="container">
+            <h1 class="mb-4">قائمة العقود</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <a href="/admin/accounting/contract/add/" class="btn btn-primary mb-3">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        إضافة عقد جديد
+                    </a>
+                    
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>رقم العقد</th>
+                                <th>العميل</th>
+                                <th>الوحدة</th>
+                                <th>القيمة الإجمالية</th>
+                                <th>المدفوع</th>
+                                <th>المتبقي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    """
+    
+    for contract in contracts:
+        html += f"""
+            <tr>
+                <td>{contract.contract_no}</td>
+                <td>{contract.customer.name if contract.customer else '-'}</td>
+                <td>{contract.unit.name if contract.unit else '-'}</td>
+                <td>{contract.unit_value:,.2f} ج.م</td>
+                <td>{contract.amount_paid:,.2f} ج.م</td>
+                <td>{contract.remaining_amount:,.2f} ج.م</td>
+            </tr>
+        """
+    
+    html += """
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    """
+    
+    return HttpResponse(html)
+
+
+@login_required
+def simple_partners_list(request):
+    """Simple partners list"""
+    partners = Partner.objects.all()
+    
+    html = """
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+        <title>قائمة الشركاء</title>
+        <meta charset="utf-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/accounting/">
+                    <i class="bi bi-arrow-right me-2"></i>
+                    رجوع للرئيسية
+                </a>
+            </div>
+        </nav>
+        
+        <div class="container">
+            <h1 class="mb-4">قائمة الشركاء</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <a href="/admin/accounting/partner/add/" class="btn btn-primary mb-3">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        إضافة شريك جديد
+                    </a>
+                    
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>الكود</th>
+                                <th>الاسم</th>
+                                <th>نسبة الحصة</th>
+                                <th>الرصيد الافتتاحي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    """
+    
+    for partner in partners:
+        html += f"""
+            <tr>
+                <td>{partner.code}</td>
+                <td>{partner.name}</td>
+                <td>{partner.share_percent}%</td>
+                <td>{partner.opening_balance:,.2f} ج.م</td>
+            </tr>
+        """
+    
+    html += """
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    """
+    
+    return HttpResponse(html)
+
+
+@login_required
+def simple_safes_list(request):
+    """Simple safes list"""
+    safes = Safe.objects.all()
+    
+    html = """
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+        <title>قائمة الخزن</title>
+        <meta charset="utf-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/accounting/">
+                    <i class="bi bi-arrow-right me-2"></i>
+                    رجوع للرئيسية
+                </a>
+            </div>
+        </nav>
+        
+        <div class="container">
+            <h1 class="mb-4">قائمة الخزن</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <a href="/admin/accounting/safe/add/" class="btn btn-primary mb-3">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        إضافة خزنة جديدة
+                    </a>
+                    
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>الكود</th>
+                                <th>الاسم</th>
+                                <th>الرصيد الحالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    """
+    
+    for safe in safes:
+        html += f"""
+            <tr>
+                <td>{safe.code}</td>
+                <td>{safe.name}</td>
+                <td>{safe.balance:,.2f} ج.م</td>
+            </tr>
+        """
+    
+    html += """
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    """
+    
+    return HttpResponse(html)
