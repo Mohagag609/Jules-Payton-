@@ -1,4 +1,4 @@
-# Generated manually for Render deployment
+# Generated manually for Unit created_at field
 
 from django.db import migrations, models
 
@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounting', '0001_initial'),
+        ('accounting', '0002_customer_created_at'),
     ]
 
     operations = [
