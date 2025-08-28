@@ -1,0 +1,312 @@
+{% extends "modern_base.html" %}
+{% load humanize %}
+
+{% block title %}سندات القبض - نظام المحاسبة الذكي{% endblock %}
+{% block page_title %}سندات القبض{% endblock %}
+
+{% block content %}
+<!-- Page Actions -->
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div>
+        <p class="text-gray-500">إجمالي سندات القبض: <span class="font-bold text-gray-800">{{ receipts.count }}</span></p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+        <!-- Filter Button -->
+        <button class="btn btn-ghost">
+            <i class="ri-filter-3-line"></i>
+            <span>تصفية</span>
+        </button>
+        
+        <!-- Export Button -->
+        <button class="btn btn-ghost">
+            <i class="ri-download-2-line"></i>
+            <span>تصدير</span>
+        </button>
+        
+        <!-- Add Button -->
+        <button onclick="showModal('receipt-modal')" class="btn btn-primary">
+            <i class="ri-add-line"></i>
+            <span>سند قبض جديد</span>
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-4 border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">إجمالي اليوم</p>
+                <p class="text-2xl font-bold text-green-600">{{ today_total|floatformat:2|intcomma }} ج.م</p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="ri-calendar-check-line text-green-600"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl p-4 border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">إجمالي الشهر</p>
+                <p class="text-2xl font-bold text-indigo-600">{{ month_total|floatformat:2|intcomma }} ج.م</p>
+            </div>
+            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <i class="ri-calendar-2-line text-indigo-600"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl p-4 border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500">إجمالي السنة</p>
+                <p class="text-2xl font-bold text-purple-600">{{ year_total|floatformat:2|intcomma }} ج.م</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="ri-bar-chart-box-line text-purple-600"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+    <div class="overflow-x-auto">
+        <table class="modern-table">
+            <thead>
+                <tr>
+                    <th>رقم السند</th>
+                    <th>التاريخ</th>
+                    <th>العميل</th>
+                    <th>البيان</th>
+                    <th>الخزنة</th>
+                    <th>المبلغ</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="receipts-tbody">
+                {% for receipt in receipts %}
+                <tr class="animate-fadeIn" style="animation-delay: {{ forloop.counter0|floatformat:1 }}00ms">
+                    <td>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                            #{{ receipt.id|stringformat:"05d" }}
+                        </span>
+                    </td>
+                    <td>
+                        <div>
+                            <p class="font-semibold">{{ receipt.date|date:"d/m/Y" }}</p>
+                            <p class="text-xs text-gray-500">{{ receipt.date|date:"l" }}</p>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                                {{ receipt.customer.name|first|upper|default:"ن" }}
+                            </div>
+                            <div>
+                                <p class="font-semibold">{{ receipt.customer.name|default:"عميل نقدي" }}</p>
+                                {% if receipt.customer.phone %}
+                                <p class="text-xs text-gray-500">{{ receipt.customer.phone }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <p class="max-w-xs truncate" title="{{ receipt.description }}">
+                            {{ receipt.description|default:"-" }}
+                        </p>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <i class="ri-safe-2-line text-yellow-500"></i>
+                            <span>{{ receipt.safe.name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-lg font-bold text-green-600">
+                            {{ receipt.amount|floatformat:2|intcomma }} ج.م
+                        </span>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <button class="text-indigo-600 hover:text-indigo-700 transition-colors">
+                                <i class="ri-eye-line text-xl"></i>
+                            </button>
+                            <button class="text-blue-600 hover:text-blue-700 transition-colors">
+                                <i class="ri-edit-line text-xl"></i>
+                            </button>
+                            <button class="text-red-600 hover:text-red-700 transition-colors">
+                                <i class="ri-delete-bin-line text-xl"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-16">
+                        <div class="flex flex-col items-center gap-4">
+                            <i class="ri-inbox-line text-6xl text-gray-300"></i>
+                            <p class="text-gray-500">لا توجد سندات قبض حتى الآن</p>
+                            <button onclick="showModal('receipt-modal')" class="btn btn-primary">
+                                <i class="ri-add-line"></i>
+                                إضافة أول سند قبض
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="receipt-modal" class="modal">
+    <div class="modal-content max-w-2xl">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-2xl font-bold text-gray-800">سند قبض جديد</h3>
+                <button onclick="closeModal('receipt-modal')" class="text-gray-400 hover:text-gray-600">
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <form 
+            hx-post="{% url 'accounting:vouchers:receipt_voucher_list' %}"
+            hx-target="#receipts-tbody"
+            hx-swap="afterbegin"
+            class="p-6">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                <!-- Date and Safe -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">التاريخ <span class="text-red-500">*</span></label>
+                        <input type="date" name="date" required class="form-input" value="{% now 'Y-m-d' %}">
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">الخزنة <span class="text-red-500">*</span></label>
+                        <select name="safe" required class="form-input">
+                            <option value="">اختر الخزنة</option>
+                            {% for safe in form.fields.safe.queryset %}
+                            <option value="{{ safe.id }}">{{ safe.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Customer and Partner -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="form-label">العميل</label>
+                        <select name="customer" class="form-input">
+                            <option value="">عميل نقدي</option>
+                            {% for customer in form.fields.customer.queryset %}
+                            <option value="{{ customer.id }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="form-label">الشريك</label>
+                        <select name="partner" class="form-input">
+                            <option value="">بدون شريك</option>
+                            {% for partner in form.fields.partner.queryset %}
+                            <option value="{{ partner.id }}">{{ partner.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Amount -->
+                <div>
+                    <label class="form-label">المبلغ <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <input type="number" name="amount" required step="0.01" min="0" 
+                               class="form-input pl-16" placeholder="0.00">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">
+                            ج.م
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    <label class="form-label">البيان</label>
+                    <textarea name="description" rows="3" class="form-input" 
+                              placeholder="وصف السند..."></textarea>
+                </div>
+                
+                <!-- Revenue Head -->
+                <div>
+                    <label class="form-label">بند الإيراد</label>
+                    <select name="revenue_head" class="form-input">
+                        <option value="">اختر بند الإيراد</option>
+                        <option value="sales">مبيعات</option>
+                        <option value="services">خدمات</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+                <button type="button" onclick="closeModal('receipt-modal')" class="btn btn-ghost">
+                    إلغاء
+                </button>
+                <button type="submit" class="btn btn-success">
+                    <i class="ri-save-line"></i>
+                    حفظ السند
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Handle form submission
+document.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'receipts-tbody') {
+        // Close modal
+        closeModal('receipt-modal');
+        
+        // Show success message
+        showSuccessMessage('تم إضافة سند القبض بنجاح!');
+        
+        // Highlight new row
+        const newRow = event.detail.target.firstElementChild;
+        if (newRow) {
+            newRow.style.background = 'linear-gradient(to right, rgba(16, 185, 129, 0.1), transparent)';
+            setTimeout(() => {
+                newRow.style.background = '';
+            }, 2000);
+        }
+        
+        // Reset form
+        event.detail.target.closest('form')?.reset();
+    }
+});
+
+// Handle HTMX events
+document.body.addEventListener('showMessage', function(evt) {
+    const { message, type } = evt.detail;
+    if (type === 'success') {
+        showSuccessMessage(message);
+    } else {
+        showErrorMessage(message);
+    }
+});
+
+document.body.addEventListener('closeModal', function() {
+    closeModal('receipt-modal');
+});
+</script>
+{% endblock %}
