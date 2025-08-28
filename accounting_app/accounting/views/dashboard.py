@@ -333,7 +333,7 @@ def get_partner_profits_summary():
     # Sort by total receipts descending
     summary.sort(key=lambda x: x['total_receipts'], reverse=True)
     
-            return summary[:5]  # Top 5 partners
+    return summary[:5]  # Top 5 partners
 
 
 @login_required
