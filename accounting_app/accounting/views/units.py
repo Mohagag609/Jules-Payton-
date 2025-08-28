@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
+from django.db.models import Q, Sum
+from decimal import Decimal
 
 from accounting.models import Unit, UnitPartner, Partner, PartnersGroup
 from accounting.services.returns import UnitReturnService
@@ -256,3 +258,97 @@ def unit_return_execute(request, pk):
     except Exception as e:
         messages.error(request, str(e))
         return redirect('unit_detail', pk=unit.pk)
+
+
+@login_required
+def unit_create_view(request):
+    """
+    Create a new unit.
+    """
+    if request.method == 'POST':
+        form = UnitForm(request.POST)
+        if form.is_valid():
+            unit = form.save()
+            
+            # Log creation
+            AuditService.log_create(request.user, unit, request)
+            
+            messages.success(request, f'تم إنشاء الوحدة {unit.name} بنجاح')
+            return redirect('units:unit_detail', pk=unit.pk)
+    else:
+        form = UnitForm()
+    
+    return render(request, 'accounting/units/form.html', {
+        'form': form,
+        'title': 'إضافة وحدة جديدة',
+        'submit_text': 'إنشاء الوحدة'
+    })
+
+
+@login_required
+def unit_edit_view(request, pk):
+    """
+    Edit unit details.
+    """
+    unit = get_object_or_404(Unit, pk=pk)
+    
+    if request.method == 'POST':
+        form = UnitForm(request.POST, instance=unit)
+        if form.is_valid():
+            # Track changes
+            old_values = {
+                field: getattr(unit, field) 
+                for field in form.changed_data
+            }
+            
+            unit = form.save()
+            
+            # Log update
+            changes = {
+                field: {
+                    'old': old_values[field],
+                    'new': getattr(unit, field)
+                }
+                for field in form.changed_data
+            }
+            AuditService.log_update(request.user, unit, changes, request)
+            
+            messages.success(request, 'تم تحديث بيانات الوحدة بنجاح')
+            return redirect('units:unit_detail', pk=unit.pk)
+    else:
+        form = UnitForm(instance=unit)
+    
+    return render(request, 'accounting/units/form.html', {
+        'form': form,
+        'unit': unit,
+        'title': f'تعديل الوحدة: {unit.name}',
+        'submit_text': 'حفظ التغييرات'
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def unit_delete_view(request, pk):
+    """
+    Delete a unit.
+    """
+    unit = get_object_or_404(Unit, pk=pk)
+    
+    # Check if unit can be deleted
+    if hasattr(unit, 'contract'):
+        messages.error(request, 'لا يمكن حذف وحدة مرتبطة بعقد')
+        return redirect('units:unit_detail', pk=unit.pk)
+    
+    # Check if unit has partners
+    if UnitPartner.objects.filter(unit=unit).exists():
+        messages.warning(request, 'يجب إزالة جميع الشركاء من الوحدة قبل الحذف')
+        return redirect('units:unit_detail', pk=unit.pk)
+    
+    # Log deletion
+    AuditService.log_delete(request.user, unit, request)
+    
+    unit_name = unit.name
+    unit.delete()
+    
+    messages.success(request, f'تم حذف الوحدة {unit_name} بنجاح')
+    return redirect('units:unit_list')
