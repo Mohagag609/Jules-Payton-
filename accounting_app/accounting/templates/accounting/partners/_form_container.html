@@ -5,7 +5,8 @@
             hx-target="#partner-row-{{ partner.pk }}"
         {% else %}
             hx-post="{% url 'accounting:partners:list' %}"
-            hx-target="#form-container"
+            hx-target="#partner-table-body"
+            hx-swap="afterbegin"
         {% endif %}
         hx-swap="outerHTML"
         class="space-y-4">
