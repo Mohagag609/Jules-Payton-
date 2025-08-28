@@ -17,6 +17,11 @@ DEBUG = os.getenv("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS_str = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost")
 ALLOWED_HOSTS = [h.strip() for h in ALLOWED_HOSTS_str.split(",") if h.strip()]
+CSRF_TRUSTED_ORIGINS_str = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [u.strip() for u in CSRF_TRUSTED_ORIGINS_str.split(",") if u.strip()]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 
 # Application definition
