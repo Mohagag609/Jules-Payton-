@@ -34,10 +34,10 @@ urlpatterns = [
     path('settings/', include('accounting.urls.settings')),
     
     # API Endpoints
-    path('api/undo/', dashboard.undo_action, name='undo_action'),
-    path('api/redo/', dashboard.redo_action, name='redo_action'),
-    path('api/theme/', dashboard.update_theme, name='update_theme'),
-    path('api/search/', dashboard.global_search, name='global_search'),
+    path('api/undo/', dashboard.undo_action, name='api_undo_action'),
+    path('api/redo/', dashboard.redo_action, name='api_redo_action'),
+    path('api/theme/', dashboard.update_theme, name='api_update_theme'),
+    path('api/search/', dashboard.global_search, name='api_global_search'),
     path('api/lock/', dashboard.lock_app, name='lock_app'),
     path('api/unlock/', dashboard.unlock_app, name='unlock_app'),
 ]
