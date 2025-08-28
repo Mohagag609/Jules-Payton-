@@ -190,6 +190,93 @@ def simple_dashboard(request):
     """)
 
 
+@login_required
+def simple_customers_list(request):
+    """Simple customers list view"""
+    customers = Customer.objects.all()
+    
+    rows = ""
+    for customer in customers:
+        rows += f"""
+        <tr>
+            <td>{customer.id}</td>
+            <td>{customer.name}</td>
+            <td>{customer.phone or '-'}</td>
+            <td>{customer.email or '-'}</td>
+            <td>{customer.national_id or '-'}</td>
+            <td>
+                <a href="/accounting/customers/{customer.id}/update/" class="btn btn-sm btn-primary">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="/accounting/customers/{customer.id}/delete/" class="btn btn-sm btn-danger" 
+                   onclick="return confirm('هل أنت متأكد من الحذف؟')">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </td>
+        </tr>
+        """
+    
+    return HttpResponse(f"""
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+        <title>العملاء</title>
+        <meta charset="utf-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    </head>
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/accounting/">
+                    <i class="bi bi-building me-2"></i>
+                    نظام إدارة العقارات
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/admin/">
+                        <i class="bi bi-gear me-1"></i>
+                        لوحة الإدارة
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>العملاء</h1>
+                <a href="/admin/accounting/customer/add/" class="btn btn-success">
+                    <i class="bi bi-plus-circle me-1"></i>
+                    إضافة عميل جديد
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الاسم</th>
+                                <th>الهاتف</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>الرقم القومي</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows or '<tr><td colspan="6" class="text-center">لا يوجد عملاء</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    """)
+
+
 def error_response(title, error):
     """Return error page"""
     return HttpResponse(f"""
