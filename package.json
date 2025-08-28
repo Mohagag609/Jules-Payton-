@@ -1,5 +1,12 @@
 {
+  "name": "accounting-app",
+  "version": "1.0.0",
+  "description": "Accounting app with Tailwind CSS",
+  "scripts": {
+    "build-css": "tailwindcss -i ./accounting_app/static/src/tailwind.css -o ./accounting_app/static/css/tailwind.css --minify",
+    "watch-css": "tailwindcss -i ./accounting_app/static/src/tailwind.css -o ./accounting_app/static/css/tailwind.css --watch"
+  },
   "devDependencies": {
-    "tailwindcss": "^4.1.12"
+    "tailwindcss": "^3.4.1"
   }
 }
