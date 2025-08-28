@@ -1,8 +1,7 @@
-import json
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.db.models import ProtectedError
 
 from accounting.models import Partner
@@ -11,57 +10,47 @@ from accounting.forms import PartnerForm
 @login_required
 def partner_list_view(request):
     """
-    Renders the list of all partners.
+    Renders the list of all partners and handles creation of a new partner.
     """
+    form = PartnerForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        partner = form.save()
+        response = render(request, 'accounting/partners/_row.html', {'partner': partner})
+        response['HX-Retarget'] = '#partner-table-body'
+        response['HX-Reswap'] = 'afterbegin'
+        form_response = render(request, 'accounting/partners/_form_container.html', {'form': PartnerForm()})
+        response.content += form_response.content
+        return response
+
     partners = Partner.objects.all()
     context = {
         'partners': partners,
+        'form': form,
         'page_title': 'الشركاء'
     }
     return render(request, 'accounting/partners/list.html', context)
 
 @login_required
-def partner_create_view(request):
+@require_POST
+def partner_update_view(request, pk):
     """
-    Handles creation of a new partner.
-    GET: Returns the form to be loaded into the modal.
-    POST: Processes the form and returns the new table row, closing the modal.
-    """
-    if request.method == 'POST':
-        form = PartnerForm(request.POST)
-        if form.is_valid():
-            partner = form.save()
-            response = render(request, 'accounting/partners/_row.html', {'partner': partner})
-            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء الشريك بنجاح!", "type": "success"}})
-            return response
-    else:
-        form = PartnerForm()
-
-    context = {'form': form}
-    return render(request, 'accounting/partners/_form.html', context)
-
-@login_required
-def partner_edit_view(request, pk):
-    """
-    Handles editing an existing partner.
+    Handles updating an existing partner.
     """
     partner = get_object_or_404(Partner, pk=pk)
-    if request.method == 'POST':
-        form = PartnerForm(request.POST, instance=partner)
-        if form.is_valid():
-            partner = form.save()
-            response = render(request, 'accounting/partners/_row.html', {'partner': partner})
-            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث بيانات الشريك بنجاح!", "type": "success"}})
-            return response
-    else:
-        form = PartnerForm(instance=partner)
+    form = PartnerForm(request.POST, instance=partner)
+    if form.is_valid():
+        partner = form.save()
+        return render(request, 'accounting/partners/_row.html', {'partner': partner})
+    return render(request, 'accounting/partners/_form_container.html', {'form': form, 'partner': partner})
 
-    context = {
-        'form': form,
-        'partner': partner
-    }
-    return render(request, 'accounting/partners/_form.html', context)
-
+@login_required
+def partner_get_form_view(request, pk):
+    """
+    Returns the partner form pre-filled with data for editing.
+    """
+    partner = get_object_or_404(Partner, pk=pk)
+    form = PartnerForm(instance=partner)
+    return render(request, 'accounting/partners/_form_container.html', {'form': form, 'partner': partner})
 
 @login_required
 @require_http_methods(["DELETE"])

@@ -5,9 +5,9 @@
     <td class="px-6 py-4">{{ supplier.phone }}</td>
     <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
         <button
-            hx-get="{% url 'accounting:suppliers:edit' pk=supplier.pk %}"
-            hx-target="#modal-body"
-            onclick="openModal()"
+            hx-get="{% url 'accounting:suppliers:get_form' pk=supplier.pk %}"
+            hx-target="#form-container"
+            hx-swap="outerHTML"
             class="text-blue-600 hover:text-blue-800 font-medium">
             تعديل
         </button>

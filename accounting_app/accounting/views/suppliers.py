@@ -1,8 +1,7 @@
-import json
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.db.models import ProtectedError
 
 from accounting.models import Supplier
@@ -10,45 +9,39 @@ from accounting.forms import SupplierForm
 
 @login_required
 def supplier_list_view(request):
+    form = SupplierForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        supplier = form.save()
+        response = render(request, 'accounting/suppliers/_row.html', {'supplier': supplier})
+        response['HX-Retarget'] = '#supplier-table-body'
+        response['HX-Reswap'] = 'afterbegin'
+        form_response = render(request, 'accounting/suppliers/_form_container.html', {'form': SupplierForm()})
+        response.content += form_response.content
+        return response
+
     suppliers = Supplier.objects.all()
     context = {
         'suppliers': suppliers,
+        'form': form,
         'page_title': 'الموردون'
     }
     return render(request, 'accounting/suppliers/list.html', context)
 
 @login_required
-def supplier_create_view(request):
-    if request.method == 'POST':
-        form = SupplierForm(request.POST)
-        if form.is_valid():
-            supplier = form.save()
-            response = render(request, 'accounting/suppliers/_row.html', {'supplier': supplier})
-            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء المورد بنجاح!", "type": "success"}})
-            return response
-    else:
-        form = SupplierForm()
-    context = {'form': form}
-    return render(request, 'accounting/suppliers/_form.html', context)
+@require_POST
+def supplier_update_view(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    form = SupplierForm(request.POST, instance=supplier)
+    if form.is_valid():
+        supplier = form.save()
+        return render(request, 'accounting/suppliers/_row.html', {'supplier': supplier})
+    return render(request, 'accounting/suppliers/_form_container.html', {'form': form, 'supplier': supplier})
 
 @login_required
-def supplier_edit_view(request, pk):
+def supplier_get_form_view(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
-    if request.method == 'POST':
-        form = SupplierForm(request.POST, instance=supplier)
-        if form.is_valid():
-            supplier = form.save()
-            response = render(request, 'accounting/suppliers/_row.html', {'supplier': supplier})
-            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث المورد بنجاح!", "type": "success"}})
-            return response
-    else:
-        form = SupplierForm(instance=supplier)
-    context = {
-        'form': form,
-        'supplier': supplier
-    }
-    return render(request, 'accounting/suppliers/_form.html', context)
-
+    form = SupplierForm(instance=supplier)
+    return render(request, 'accounting/suppliers/_form_container.html', {'form': form, 'supplier': supplier})
 
 @login_required
 @require_http_methods(["DELETE"])

@@ -1,10 +1,8 @@
 from django.shortcuts import render, get_object_or_404
-import json
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from django.db.models import ProtectedError
-from django.contrib import messages
 
 from accounting.models import Customer
 from accounting.forms import CustomerForm
@@ -12,55 +10,52 @@ from accounting.forms import CustomerForm
 @login_required
 def customer_list_view(request):
     """
-    Renders the list of all customers.
+    Renders the list of all customers and handles creation of a new customer.
     """
+    form = CustomerForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        customer = form.save()
+        # Return the new row and a cleared form
+        response = render(request, 'accounting/customers/_row.html', {'customer': customer})
+        # HTMX can handle multiple swaps, here we append to the table and replace the form
+        response['HX-Retarget'] = '#customer-table-body'
+        response['HX-Reswap'] = 'afterbegin'
+        # We need another response to clear the form
+        form_response = render(request, 'accounting/customers/_form_container.html', {'form': CustomerForm()})
+        response.content += form_response.content
+        return response
+
     customers = Customer.objects.all()
     context = {
         'customers': customers,
+        'form': form,
         'page_title': 'العملاء'
     }
     return render(request, 'accounting/customers/list.html', context)
 
 @login_required
-def customer_create_view(request):
+@require_POST
+def customer_update_view(request, pk):
     """
-    Handles creation of a new customer.
-    """
-    if request.method == 'POST':
-        form = CustomerForm(request.POST)
-        if form.is_valid():
-            customer = form.save()
-            response = render(request, 'accounting/customers/_row.html', {'customer': customer})
-            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم إنشاء العميل بنجاح!", "type": "success"}})
-            return response
-    else:
-        form = CustomerForm()
-
-    context = {'form': form}
-    return render(request, 'accounting/customers/_form.html', context)
-
-@login_required
-def customer_edit_view(request, pk):
-    """
-    Handles editing an existing customer.
+    Handles updating an existing customer.
     """
     customer = get_object_or_404(Customer, pk=pk)
-    if request.method == 'POST':
-        form = CustomerForm(request.POST, instance=customer)
-        if form.is_valid():
-            customer = form.save()
-            response = render(request, 'accounting/customers/_row.html', {'customer': customer})
-            response['HX-Trigger'] = json.dumps({"closeModal": None, "showToast": {"message": "تم تحديث بيانات العميل بنجاح!", "type": "success"}})
-            return response
-    else:
-        form = CustomerForm(instance=customer)
+    form = CustomerForm(request.POST, instance=customer)
+    if form.is_valid():
+        customer = form.save()
+        # Return the updated row to be swapped in the table
+        return render(request, 'accounting/customers/_row.html', {'customer': customer})
+    # If form is invalid, return the form with errors
+    return render(request, 'accounting/customers/_form_container.html', {'form': form, 'customer': customer})
 
-    context = {
-        'form': form,
-        'customer': customer
-    }
-    return render(request, 'accounting/customers/_form.html', context)
-
+@login_required
+def customer_get_form_view(request, pk):
+    """
+    Returns the customer form pre-filled with data for editing.
+    """
+    customer = get_object_or_404(Customer, pk=pk)
+    form = CustomerForm(instance=customer)
+    return render(request, 'accounting/customers/_form_container.html', {'form': form, 'customer': customer})
 
 @login_required
 @require_http_methods(["DELETE"])

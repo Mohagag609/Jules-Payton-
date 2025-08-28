@@ -9,9 +9,9 @@
     <td class="px-6 py-4 font-mono">{{ partner.opening_balance|intcomma }}</td>
     <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
         <button
-            hx-get="{% url 'accounting:partners:edit' pk=partner.pk %}"
-            hx-target="#modal-body"
-            onclick="openModal()"
+            hx-get="{% url 'accounting:partners:get_form' pk=partner.pk %}"
+            hx-target="#form-container"
+            hx-swap="outerHTML"
             class="text-blue-600 hover:text-blue-800 font-medium">
             تعديل
         </button>

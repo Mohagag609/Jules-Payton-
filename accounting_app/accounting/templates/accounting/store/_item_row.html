@@ -10,9 +10,9 @@
     <td class="px-6 py-4 font-bold">{{ item.balance|intcomma }}</td>
     <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
         <button
-            hx-get="{% url 'accounting:projects_store:item_edit' pk=item.pk %}"
-            hx-target="#modal-body"
-            onclick="openModal()"
+            hx-get="{% url 'accounting:projects_store:item_get_form' pk=item.pk %}"
+            hx-target="#form-container"
+            hx-swap="outerHTML"
             class="text-blue-600 hover:text-blue-800 font-medium">
             تعديل
         </button>

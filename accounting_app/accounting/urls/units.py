@@ -5,7 +5,7 @@ app_name = 'units'
 
 urlpatterns = [
     path('', views.unit_list_view, name='list'),
-    path('create/', views.unit_create_view, name='create'),
-    path('<int:pk>/edit/', views.unit_edit_view, name='edit'),
+    path('<int:pk>/update/', views.unit_update_view, name='update'),
+    path('<int:pk>/get-form/', views.unit_get_form_view, name='get_form'),
     path('<int:pk>/delete/', views.unit_delete_view, name='delete'),
 ]

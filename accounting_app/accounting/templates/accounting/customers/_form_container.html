@@ -1,0 +1,53 @@
+<div id="customer-form-container" class="bg-white rounded-2xl shadow-xl w-full mx-auto p-6">
+    <form
+        {% if customer %}
+            hx-post="{% url 'accounting:customers:update' pk=customer.pk %}"
+            hx-target="#customer-row-{{ customer.pk }}"
+        {% else %}
+            hx-post="{% url 'accounting:customers:list' %}"
+            hx-target="#form-container"
+        {% endif %}
+        hx-swap="outerHTML"
+        class="space-y-4">
+
+        {% csrf_token %}
+
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+            {% if customer %}
+                تعديل بيانات العميل: {{ customer.name }}
+            {% else %}
+                إضافة عميل جديد
+            {% endif %}
+        </h2>
+
+        <div class="space-y-2">
+            {% for field in form %}
+                <div>
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <p class="text-xs text-gray-500 mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-red-500 text-xs italic">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="flex justify-end space-x-4 space-x-reverse pt-4">
+            {% if customer %}
+                <button type="button" hx-get="{% url 'accounting:customers:list' %}" hx-target="#form-container" hx-swap="outerHTML" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">
+                    إلغاء
+                </button>
+            {% endif %}
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                {% if customer %}
+                    حفظ التعديلات
+                {% else %}
+                    إضافة
+                {% endif %}
+            </button>
+        </div>
+    </form>
+</div>

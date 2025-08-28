@@ -16,9 +16,9 @@
     </td>
     <td class="px-6 py-4 text-center space-x-2 space-x-reverse">
         <button
-            hx-get="{% url 'accounting:units:edit' pk=unit.pk %}"
-            hx-target="#modal-body"
-            onclick="openModal()"
+            hx-get="{% url 'accounting:units:get_form' pk=unit.pk %}"
+            hx-target="#form-container"
+            hx-swap="outerHTML"
             class="text-blue-600 hover:text-blue-800 font-medium {% if unit.contract %}disabled:opacity-50{% endif %}"
             {% if unit.contract %}disabled{% endif %}>
             تعديل
