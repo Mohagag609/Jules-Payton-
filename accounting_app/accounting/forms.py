@@ -1,9 +1,15 @@
 from django import forms
 from datetime import date
+from decimal import Decimal
+from django.db import models
 from .models import (
     Partner, Safe, Customer, Supplier, Unit, Project, Item, StockMove,
-    Contract, ReceiptVoucher, PaymentVoucher
+    Contract, ReceiptVoucher, PaymentVoucher, UnitPartner, Broker,
+    BrokerDue, Transfer, PartnerDebt, UserSettings
 )
+
+# Import additional forms
+from .forms_extra import UnitPartnerForm, BrokerForm, TransferForm, UserSettingsForm
 
 class PartnerForm(forms.ModelForm):
     class Meta:
