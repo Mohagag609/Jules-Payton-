@@ -15,11 +15,13 @@ def project_list_view(request):
     form = ProjectForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         project = form.save()
+        # إضافة رسالة نجاح
+        from django.contrib import messages
+        messages.success(request, f'تم إضافة المشروع "{project.name}" بنجاح!')
+        
+        # إرجاع الصف الجديد فقط مع trigger لإغلاق النافذة
         response = render(request, 'accounting/projects/_row.html', {'project': project})
-        response['HX-Retarget'] = '#project-table-body'
-        response['HX-Reswap'] = 'afterbegin'
-        form_response = render(request, 'accounting/projects/_form_container.html', {'form': ProjectForm()})
-        response.content += form_response.content
+        response['HX-Trigger'] = 'projectAdded'
         return response
 
     projects = Project.objects.all()
